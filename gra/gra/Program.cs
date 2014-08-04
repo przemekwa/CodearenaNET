@@ -13,13 +13,11 @@ namespace gra
         {
             using (var codeArenaTcp = new SilnikTCP("codearena.pl",7654))
             {
-                codeArenaTcp.WyśliKomunikat("");
-
-                Thread.Sleep(4000);
-
+                codeArenaTcp.WyśliKomunikat("<connect userid=\"329\" hashid=\"ff48b0788df7f00d4a341db86c0c0a81\" /> ");
 
                 while (true)
                 {
+                    Thread.Sleep(4000);
                     codeArenaTcp.OdbierzKomunikat();
                 }
 

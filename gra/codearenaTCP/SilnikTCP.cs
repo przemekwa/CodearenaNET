@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace codearenaTCP
 {
@@ -38,24 +39,75 @@ namespace codearenaTCP
 
         public void WyśliKomunikat(string komunikat)
         {
-            ASCIIEncoding asen = new ASCIIEncoding();
-            byte[] ba = asen.GetBytes(komunikat);
+            try
+            {
+                ASCIIEncoding asen = new ASCIIEncoding();
+                byte[] ba = asen.GetBytes(komunikat);
 
-            Console.WriteLine("Wysyłanie...{0}",komunikat);
+                Console.WriteLine("Wysyłanie...{0}", komunikat);
 
-            stm.Write(ba, 0, ba.Length);
+                stm.Write(ba, 0, ba.Length);
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Wystapił błąd podczas wysyłania komunikatu {0}", e);
+            }
+          
             
         }
 
-        public void OdbierzKomunikat()
+        public XmlDocument OdbierzKomunikat()
         {
-            Console.WriteLine("Odbieranie...");
+            try
+            {
+                Console.WriteLine("Odbieranie...");
 
-            byte[] bb = new byte[1000];
-            int k = stm.Read(bb, 0, 1000);
+                byte[] bb = new byte[10000];
+                int k = stm.Read(bb, 0, 10000);
 
-            for (int i = 0; i < k; i++)
-                Console.Write(Convert.ToChar(bb[i]));
+                StringBuilder odp = new StringBuilder();
+
+                for (int i = 0; i < k; i++)
+                {
+                    odp.Append(Convert.ToChar(bb[i]));
+                }
+
+                string[] separator = { "<?xml version=\"1.0\"?>" };
+
+                var tablicaOdp = odp.ToString().Split(separator, StringSplitOptions.None);
+
+                foreach (var s in tablicaOdp)
+                {
+                    if (s.Contains("response"))
+                    {
+                        XmlDocument xml = new XmlDocument();
+
+                        xml.LoadXml(s);
+
+                        var node = xml.SelectSingleNode("response");
+
+                        Console.WriteLine("Odpowiedz z serwera o statusie gry {0}", node.Attributes[0].InnerText);
+
+                        return null;
+
+                    }
+                    else if (!string.IsNullOrEmpty(s))
+                    {
+                        XmlDocument xml = new XmlDocument();
+                        xml.LoadXml(s);
+                        return xml;
+                    }
+
+
+                }
+                return null;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Wystapił błąd podczas wysyłania komunikatu {0}", e);
+                return null;
+            }
         }
         
         public void Dispose()

@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "gra", "gra\gra.csproj", "{7923F33B-B42F-4A19-9EB3-E51BE93CFA44}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "codearenaTCP", "codearenaTCP\codearenaTCP.csproj", "{09801023-ADE9-44FF-84DC-787900EED4B1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Testy", "Testy\Testy.csproj", "{49EBF951-D1C0-45D5-BCCE-C66EFD271DA5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7923F33B-B42F-4A19-9EB3-E51BE93CFA44}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7923F33B-B42F-4A19-9EB3-E51BE93CFA44}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7923F33B-B42F-4A19-9EB3-E51BE93CFA44}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7923F33B-B42F-4A19-9EB3-E51BE93CFA44}.Release|Any CPU.Build.0 = Release|Any CPU
+		{09801023-ADE9-44FF-84DC-787900EED4B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09801023-ADE9-44FF-84DC-787900EED4B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09801023-ADE9-44FF-84DC-787900EED4B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09801023-ADE9-44FF-84DC-787900EED4B1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{49EBF951-D1C0-45D5-BCCE-C66EFD271DA5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{49EBF951-D1C0-45D5-BCCE-C66EFD271DA5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{49EBF951-D1C0-45D5-BCCE-C66EFD271DA5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{49EBF951-D1C0-45D5-BCCE-C66EFD271DA5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

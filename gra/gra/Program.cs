@@ -14,8 +14,6 @@ namespace gra
     {
         static void Main(string[] args)
         {
-           
-
             //List<string> bot = new List<string>() { "<go direction='SE' />", 
             //    "<go direction='SE' />", 
             //    "<go direction='SE' />", 
@@ -64,41 +62,28 @@ namespace gra
             //    "<go action='drop' />",
             //};
 
-
             using (var codeArenaTcp = new SilnikTCP("codearena.pl", 7654))
             {
                 codeArenaTcp.WyśliKomunikat("<connect userid=\"329\" hashid=\"ff48b0788df7f00d4a341db86c0c0a81\" /> ");
-                 Console.Read();
+                Console.Read();
                 Thread.Sleep(2000);
 
-             while (true)
-              {
-                
+                while (true)
+                {
                     var test = codeArenaTcp.OdbierzKomunikat();
+
                     if (test != null)
                     {
                         var ruch = XmlDoObiektu.Konwersja(test);
-                        codeArenaTcp.WyśliKomunikat("<unit id='" + ruch.listaJednostek[0].id + "'>"+s+"</unit>");
 
-                        
-
+                        codeArenaTcp.WyśliKomunikat("<unit id='" + ruch.listaJednostek[0].id + "'>" + ""+ "</unit>");
                     }
 
-                   Thread.Sleep(2000);
+                    Thread.Sleep(2000);
 
-                 
-                
-
+                };
                 Console.Read();
-              
-            };
-
-          
-
-
-
-           
-
+            }
         }
     }
 }

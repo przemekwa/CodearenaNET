@@ -9,84 +9,79 @@ namespace gra
 {
     static class XmlDoObiektu
     {
-        public static gra Konwersja(XmlDocument xml)
+        public static Game Konwersja(XmlDocument xml)
         {
+            var general = xml.SelectSingleNode("/game/general");
 
-            var node = xml.SelectSingleNode("/game/general");
-
-            var gra = new gra();
-
-            gra.timeSec = node["timeSec"].InnerText;
-            gra.roundNum = node["roundNum"].InnerText;
-            gra.amountOfPoints = node["amountOfPoints"].InnerText;
-
-            var nodes = xml.SelectNodes("/game/units/unit");
-
-            foreach (XmlNode unit in nodes)
+            var game = new Game
             {
-                var jednostka = new Jednostka();
+                timeSec = general["timeSec"].InnerText,
+                roundNum = general["roundNum"].InnerText,
+                amountOfPoints = general["amountOfPoints"].InnerText
+            };
 
-                jednostka.id = unit.Attributes["id"].InnerText;
-                jednostka.x = Int32.Parse(unit.Attributes["x"].InnerText);
-                jednostka.y = Int32.Parse(unit.Attributes["y"].InnerText);
-                jednostka.status = unit.Attributes["status"].InnerText;
-                jednostka.akcja = unit.Attributes["action"].InnerText;
-                jednostka.kierunekPatrzenia = unit.Attributes["orientation"].InnerText;
-                jednostka.gracz = Int32.Parse(unit.Attributes["player"].InnerText);
-                jednostka.hp = Int32.Parse(unit.Attributes["hp"].InnerText);
+           var units = xml.SelectNodes("/game/units/unit");
 
-                var pola = unit.SelectNodes("./sees");
-
-
-              
-
-                foreach (XmlNode sees in pola)
+            foreach (XmlNode unit in units)
+            {
+                var tempUnit = new Unit
                 {
-                    var pole = new Pole();
+                    id = unit.Attributes["id"].InnerText,
+                    x = Int32.Parse(unit.Attributes["x"].InnerText),
+                    y = Int32.Parse(unit.Attributes["y"].InnerText),
+                    status = unit.Attributes["status"].InnerText,
+                    action = unit.Attributes["action"].InnerText,
+                    orientation = (DirectionType)Enum.Parse(typeof(DirectionType), unit.Attributes["orientation"].InnerText),
+                    player = Int32.Parse(unit.Attributes["player"].InnerText),
+                    hp = Int32.Parse(unit.Attributes["hp"].InnerText)
 
-                    pole.kierunekMarszu = sees.Attributes["direction"].InnerText;
+                };
 
-                    var tlo = sees.SelectSingleNode("./background");
+                var sees = unit.SelectNodes("./sees");
+
+                foreach (XmlNode see in sees)
+                {
+                    var tempSee = new Sees
+                    {
+                        Direction = (DirectionType)Enum.Parse(typeof(DirectionType), see.Attributes["direction"].InnerText),
+                    };
+
+                    var tlo = see.SelectSingleNode("./background");
 
                     if (tlo == null)
                     {
-                        pole.rodzajPola = "krawedz";
+                        tempSee.Background = BackgroundType.black;
                     }
                     else
                     {
-                        pole.rodzajPola = tlo.InnerText;
+                        tempSee.Background = (BackgroundType)Enum.Parse(typeof(BackgroundType), tlo.InnerText);
                     }
-                    var budynek = sees.SelectSingleNode("./building");
+                    var tempBuilding = see.SelectSingleNode("./building");
 
-                    if (budynek != null)
+                    if (tempBuilding != null)
                     {
-                        var bud = new budynek();
-                        bud.gracz = budynek.Attributes["player"].InnerText;
-                        bud.rodzaj = budynek.InnerText;
-                        pole.budynek = bud;
+                        var building = new Building
+                        {
+                            player = tempBuilding.Attributes["player"].InnerText,
+                            buildingType = (BuildingType)Enum.Parse(typeof(BuildingType), tempBuilding.InnerText == "base" ? "altar" : tempBuilding.InnerText)
+                        };
+
+                        tempSee.Building = building;
                     }
 
-                    var objekt = sees.SelectSingleNode("./object");
+                    var tempObject = see.SelectSingleNode("./object");
 
-                    if (objekt != null)
-                    {
-                        var obj = new Objekt();
-                        obj.typ = objekt.InnerText;
-                        pole.objekt = obj;
-                    }
-
-
-                    jednostka.pola.Add(pole);
-                     
-
+                    if (tempObject != null)
+                        tempSee.Object = (ObjectType)Enum.Parse(typeof(ObjectType), tempObject.InnerText);
+                        
+                    tempUnit.seesList.Add(tempSee);
                 }
-
-
-                gra.listaJednostek.Add(jednostka);
+                
+                game.listaJednostek.Add(tempUnit);
             }
 
 
-            return gra;
+            return game;
 
         }
     }

@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using gra;
 
-namespace gra
+namespace Ai
 {
-    class budynek
+    public class Ai
     {
-        public string gracz { get; set; }
-        public string rodzaj { get; set; }
+        public string DajMiTenRuch(Game gra)
+        {
+            return "2";
+        }
     }
 }

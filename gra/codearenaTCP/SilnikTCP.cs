@@ -18,7 +18,7 @@ namespace codearenaTCP
 
         public SilnikTCP(string host, int port)
         {
-            Console.WriteLine("Próba połączenia z {0} na porcie {1}", host, port);
+            Console.Write("Próba połączenia z {0} na porcie {1}..........", host, port);
 
             try
             {
@@ -26,7 +26,7 @@ namespace codearenaTCP
                 
                 client.Connect(host, port);
 
-                Console.WriteLine("Połączony");
+                Console.WriteLine("Połączony!");
                 log.Info("Połączony");
                 
                 stm = client.GetStream();
@@ -49,13 +49,14 @@ namespace codearenaTCP
                 byte[] ba = asen.GetBytes(komunikat);
 
                 Console.WriteLine("Wysyłanie...{0}", komunikat);
-
+                log.Info(komunikat);
                 stm.Write(ba, 0, ba.Length);
 
             }
             catch (Exception e)
             {
                 Console.WriteLine("Wystapił błąd podczas wysyłania komunikatu {0}", e);
+                log.Error(e);
             }
         }
 
@@ -86,7 +87,7 @@ namespace codearenaTCP
                         var node = XmlHelper.DajXmla(s).SelectSingleNode("response");
 
                         Console.WriteLine("Odpowiedz z serwera o statusie gry {0}", node.Attributes[0].InnerText);
-                        log.Trace("Odpowiedz z serwera o statusie gry {0}", node.Attributes[0].InnerText);
+                        log.Trace(s);
 
                         continue;
 
@@ -96,7 +97,7 @@ namespace codearenaTCP
                         var node = XmlHelper.DajXmla(s).SelectSingleNode("error");
 
                         Console.WriteLine("Error {0}", node.Attributes[0].InnerText);
-                        log.Trace("Error {0}", node.Attributes[0].InnerText);
+                        log.Trace(s);
 
                         continue;
                     }
@@ -105,13 +106,13 @@ namespace codearenaTCP
                         var node = XmlHelper.DajXmla(s).SelectSingleNode("ok");
 
                         Console.WriteLine("Status ruchu: {0}", node.Name);
-                        log.Trace("Status ruchu: {0}", node.Name);
+                        log.Trace(s);
 
                         continue;
                     }
                     else if (!string.IsNullOrEmpty(s))
                     {
-                        log.Trace(s);
+                        log.Info(s);
                         return XmlHelper.DajXmla(s);
                     }
 
@@ -121,6 +122,7 @@ namespace codearenaTCP
             catch (Exception e)
             {
                 Console.WriteLine("Wystapił błąd podczas wysyłania komunikatu {0}", e);
+                log.Error(e);
                 return null;
             }
         }

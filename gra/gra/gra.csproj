@@ -41,15 +41,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Game.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="XmlDoObiektu.cs" />
+    <Compile Include="XML.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Ai\Ai.csproj">
+      <Project>{381f872b-1d17-48c6-8666-a59455af8d40}</Project>
+      <Name>Ai</Name>
+    </ProjectReference>
     <ProjectReference Include="..\codearenaTCP\codearenaTCP.csproj">
       <Project>{09801023-ade9-44ff-84dc-787900eed4b1}</Project>
       <Name>codearenaTCP</Name>

@@ -19,7 +19,7 @@ namespace codearenaTCP
         public SilnikTCP(string host, int port)
         {
             Console.Write("Próba połączenia z {0} na porcie {1}..........", host, port);
-
+            log.Trace("Próba połączenia z {0} na porcie {1}..........", host, port);
             try
             {
                 client = new TcpClient();
@@ -121,10 +121,12 @@ namespace codearenaTCP
             }
             catch (Exception e)
             {
-                Console.WriteLine("Wystapił błąd podczas wysyłania komunikatu {0}", e);
+                Console.WriteLine("Wystapił błąd podczas odbierania komunikatu {0}", e);
                 log.Error(e);
+                
                 return null;
             }
+            
         }
         
         public void Dispose()

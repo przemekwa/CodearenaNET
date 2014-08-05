@@ -40,13 +40,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Ai.cs" />
+    <Compile Include="Game.cs" />
+    <Compile Include="Konwersje.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\gra\gra.csproj">
-      <Project>{7923f33b-b42f-4a19-9eb3-e51be93cfa44}</Project>
-      <Name>gra</Name>
-    </ProjectReference>
+    <Compile Include="sessionUnit.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -4,8 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using TestyDRAC;
 
-namespace gra
+namespace TestyDRAC
 {
     static class XmlDoObiektu
     {
@@ -20,7 +21,7 @@ namespace gra
                 amountOfPoints = general["amountOfPoints"].InnerText
             };
 
-           var units = xml.SelectNodes("/game/units/unit");
+            var units = xml.SelectNodes("/game/units/unit");
 
             foreach (XmlNode unit in units)
             {
@@ -30,7 +31,7 @@ namespace gra
                     x = Int32.Parse(unit.Attributes["x"].InnerText),
                     y = Int32.Parse(unit.Attributes["y"].InnerText),
                     status = unit.Attributes["status"].InnerText,
-                    action = unit.Attributes["action"].InnerText,
+                    action = string.IsNullOrEmpty(unit.Attributes["action"].InnerText) ? (ActionType?)null : (ActionType)Enum.Parse(typeof(ActionType), unit.Attributes["action"].InnerText),
                     orientation = (DirectionType)Enum.Parse(typeof(DirectionType), unit.Attributes["orientation"].InnerText),
                     player = Int32.Parse(unit.Attributes["player"].InnerText),
                     hp = Int32.Parse(unit.Attributes["hp"].InnerText)
@@ -62,7 +63,7 @@ namespace gra
                     {
                         var building = new Building
                         {
-                            player = tempBuilding.Attributes["player"].InnerText,
+                            player = Int32.Parse(tempBuilding.Attributes["player"].InnerText),
                             buildingType = (BuildingType)Enum.Parse(typeof(BuildingType), tempBuilding.InnerText == "base" ? "altar" : tempBuilding.InnerText)
                         };
 
@@ -73,10 +74,10 @@ namespace gra
 
                     if (tempObject != null)
                         tempSee.Object = (ObjectType)Enum.Parse(typeof(ObjectType), tempObject.InnerText);
-                        
+
                     tempUnit.seesList.Add(tempSee);
                 }
-                
+
                 game.listaJednostek.Add(tempUnit);
             }
 

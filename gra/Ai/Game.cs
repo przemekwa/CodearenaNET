@@ -4,15 +4,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace gra
+
+namespace Ai
 {
-    public enum DirectionType { NE, E, SE, SW, W, NW  }
+    public enum DirectionType { NE, E, SE, SW, W, NW }
 
     public enum BackgroundType { green, orange, blue, red, black, stone }
 
     public enum ObjectType { stone, diamond }
 
-    public enum BuildingType { altar } 
+    public enum BuildingType { altar }
+
+    public enum CommandType { rotateRight, rotateLeft, drop, drag, NW, W, NE, E, SE, SW, heal }
+
+    public enum ActionType { dragging }
 
     public class Game
     {
@@ -27,7 +32,7 @@ namespace gra
         public DirectionType Direction { get; set; }
         public BackgroundType Background { get; set; }
         public Building Building { get; set; }
-        public ObjectType Object { get; set; }
+        public ObjectType? Object { get; set; }
     }
 
     public class Unit
@@ -37,7 +42,7 @@ namespace gra
         public int y { get; set; }
         public int hp { get; set; }
         public string status { get; set; }
-        public string action { get; set; }
+        public ActionType? action { get; set; }
         public DirectionType orientation { get; set; }
         public int player { get; set; }
         public List<Sees> seesList = new List<Sees>();
@@ -45,7 +50,7 @@ namespace gra
 
     public class Building
     {
-        public string player { get; set; }
+        public int player { get; set; }
         public BuildingType buildingType { get; set; }
     }
 }

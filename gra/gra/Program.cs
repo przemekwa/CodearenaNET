@@ -8,6 +8,8 @@ using System.Threading;
 using System.Xml.Serialization;
 using System.IO;
 using System.Xml;
+using Ai;
+
 namespace gra
 {
     class Program
@@ -76,7 +78,11 @@ namespace gra
                     {
                         var ruch = XmlDoObiektu.Konwersja(test);
 
-                        codeArenaTcp.WyśliKomunikat("<unit id='" + ruch.listaJednostek[0].id + "'>" + ""+ "</unit>");
+
+                        var ai = new RuchJednostek();
+
+
+                        codeArenaTcp.WyśliKomunikat("<unit id='" + ruch.listaJednostek[0].id + "'>" + ai.DajMiTenRuch(ruch) + "</unit>");
                     }
 
                     Thread.Sleep(2000);

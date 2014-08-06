@@ -98,7 +98,7 @@ namespace codearenaTCP
                         continue;
 
                     }
-                    else if (s.Contains("reresult"))
+                    else if (s.Contains("result"))
                     {
                         log.Trace(s);
                         var node = XmlHelper.DajXmla(s).SelectSingleNode("game");

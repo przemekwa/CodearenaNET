@@ -32,6 +32,7 @@ namespace Ai
         private List<DirectionType> historiaRuchow;
         private int IndexCofaniaRuchow;
         private DirectionType NamiaryNaDiament;
+        private DirectionType NamiaryNaBaze;
 
         Unit unit { get; set; }
 
@@ -60,6 +61,11 @@ namespace Ai
             //
             if (CzyJestemKołoBazy())
             {
+                if (CzyJestDiament() && unit.action == ActionType.dragging)
+                {
+                    return Ai.CommandDictionary[OdłózDiament()];
+                }
+
                 if (CzyMamSieLeczyc())
                 {
                     if (unit.action != ActionType.dragging)
@@ -69,13 +75,13 @@ namespace Ai
                 }
             }
 
-            ////
-            //// Szukanie diamentu
-            ////
-            //if (CzyJestDiament())
-            //{
-            //    return Ai.CommandDictionary[ZnalazłemDiamend(NamiaryNaDiament)];
-            //}
+            //
+            // Szukanie diamentu
+            //
+            if (CzyJestDiament())
+            {
+                return Ai.CommandDictionary[ZnalazłemDiamend(NamiaryNaDiament)];
+            }
 
             var komenda = AlgorytmEksploracji();
             
@@ -85,7 +91,15 @@ namespace Ai
             return Ai.CommandDictionary[komenda];
         }
 
-      
+        private CommandType OdłózDiament()
+        {
+            if (unit.orientation == NamiaryNaBaze)
+            {
+                return CommandType.drop;
+            }
+
+            return ZmienKierunekPatrzenia(NamiaryNaBaze);
+        }
 
         private bool CzyJestDiament()
         {
@@ -269,11 +283,6 @@ namespace Ai
             }
         }
 
-        private bool CzyJednostkaWidziKrawedz()
-        {
-            return unit.seesList.Any(pole => pole.Background == BackgroundType.black);
-        }
-
         private bool CzyJestemKołoBazy()
         {
             var poleZBaza =
@@ -287,6 +296,7 @@ namespace Ai
                 Alter.x = unit.x;
                 Alter.y = unit.y;
                 czyJestemKoloSwojejBazy = true;
+                NamiaryNaBaze = poleZBaza.Direction;
 
                 if (unit.orientation == poleZBaza.Direction)
                     czyMogeSieLeczyc = true;

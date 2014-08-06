@@ -18,7 +18,7 @@ namespace Ai
             {CommandType.E, "<go direction='E' />"},
             {CommandType.SE, "<go direction='SE' />"},
             {CommandType.SW, "<go direction='SW' />"},
-            {CommandType.heal, "<go direction='heal' />"}
+            {CommandType.heal, "<go action='heal' />"}
         };
         
         private List<sessionUnit> listaSesji { get; set; }

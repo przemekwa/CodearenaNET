@@ -33,7 +33,7 @@ namespace Ai
         private int IndexCofaniaRuchow;
         private DirectionType NamiaryNaDiament;
         private DirectionType NamiaryNaBaze;
-
+        bool test = true ;
         Unit unit { get; set; }
 
         public sessionUnit(Unit jednostka)
@@ -161,7 +161,6 @@ namespace Ai
                     {
                         liść.stan = Stan.odwiedzony;
                         historiaRuchow.Add(liść.Direction);
-                        IndexCofaniaRuchow++;
                         return (CommandType) Enum.Parse(typeof (CommandType), liść.Direction.ToString());
                     }
                 }
@@ -176,13 +175,12 @@ namespace Ai
 
             //Idz do poprzedniego wieszchołka
 
-            var kierunek = CofnijSię(historiaRuchow[IndexCofaniaRuchow]);
-            IndexCofaniaRuchow--;
-
-            //[TODO] Ideeks cofania zmienijszyć.
+            var kierunek = CofnijSię(historiaRuchow.Last());
+            
 
             if (CzyMogeTamIsc(kierunek)) // Niby idiotyczne ale może ktos tam się pojawić i jakiś obiekt albo player
             {
+                historiaRuchow.Remove(historiaRuchow.Last());
                 return (CommandType)Enum.Parse(typeof(CommandType), kierunek.ToString());
             }
             
@@ -277,8 +275,16 @@ namespace Ai
             }
             else
             {
-                var k = (CommandType) Enum.Parse(typeof (CommandType), CofnijSię(historiaRuchow[IndexCofaniaRuchow-1]).ToString());
-                IndexCofaniaRuchow--;
+                //[ToDo] Numery wieszchiołów.
+                if (test)
+                {
+                    test = false;
+                    return CommandType.rotateRight;
+                }
+
+                var k = (CommandType) Enum.Parse(typeof (CommandType), CofnijSię(historiaRuchow.Last()).ToString());
+                historiaRuchow.Remove(historiaRuchow.Last());
+
                 return k;
             }
         }

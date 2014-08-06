@@ -31,7 +31,7 @@ namespace Ai
         private DirectionType poprzedniRuch;
         private List<DirectionType> historiaRuchow;
         private int IndexCofaniaRuchow;
-        private 
+        private DirectionType NamiaryNaDiament;
 
         Unit unit { get; set; }
 
@@ -55,7 +55,9 @@ namespace Ai
             DodajWieszchołek();
             GdzieMogeIsc();
 
+            //
             // Leczenie.
+            //
             if (CzyJestemKołoBazy())
             {
                 if (CzyMamSieLeczyc())
@@ -67,19 +69,13 @@ namespace Ai
                 }
             }
 
-            if (CzyJestDiament())
-            {
-                foreach (var pole in unit.seesList)
-                {
-                    if (pole.Object != null && pole.Object == ObjectType.diamond)
-                    {
-                        return Ai.CommandDictionary[ZnalazłemDiamend(pole.Direction)];
-                    }
-                }
-
-               
-            }
-
+            ////
+            //// Szukanie diamentu
+            ////
+            //if (CzyJestDiament())
+            //{
+            //    return Ai.CommandDictionary[ZnalazłemDiamend(NamiaryNaDiament)];
+            //}
 
             var komenda = AlgorytmEksploracji();
             
@@ -97,6 +93,7 @@ namespace Ai
             {
                 if (pole.Object != null && pole.Object == ObjectType.diamond)
                 {
+                    NamiaryNaDiament = pole.Direction;
                     return true;
                 }
             }
@@ -118,27 +115,33 @@ namespace Ai
 
         private CommandType AlgorytmEksploracji()
         {
-            // Zapisz wieszchołek, na którym jestem. [TODO] Co zrobić z tymi na których jest kamień i diamend i mogą się zrobić wolne w trakcje gry.
+            //
+            // Zapisz wieszchołek, na którym jestem. [TODO] Co zrobić z tymi na których jest kamień, diamend i mogą się zrobić wolne w trakcje gry.
+            //
 
             var lisceOdwiedzone = true;
 
-            //Weź pierwszy nie odwiedzony liść
+            //
+            // Weź pierwszy nie odwiedzony liść.
+            //
 
             if (listaWieszcholkow[IndexAktualnegoWieszcholka].stan == Stan.nieodwiedzony)
             {
                 foreach (var liść in listaWieszcholkow[IndexAktualnegoWieszcholka].listaLisci)
                 {
+                    ///
+                    /// Jeśli nie mogę wejść na pole to uzaje, że nie da się tam wejść i ustawiam, że to pole odwiedziłem.
+                    ///
+
                     if (liść.stan == Stan.nieodwiedzony)
                     {
+                        liść.stan = SprawdzCzyWogleMamSzanseWejscNaToPole(liść);
                         lisceOdwiedzone = false;
                     }
 
-                    //if (CzyMogeTamIsc(liść.Direction))
-                    //{
-                    //    //[TODO] Trzeba coś z kamienaimi zrobić i z diametami i bazą.
-                    //    liść.stan = Stan.odwiedzony;
-                    //}
-
+                    //
+                    // Wybieram pole jeśli mogę na nie iść. Zapisuje historię ruchów aby móc jakoś wrócić [TODO] Coś wymyśleć jak chodzić z punktu A do B!!!
+                    //
 
                     if (liść.stan == Stan.nieodwiedzony && CzyMogeTamIsc(liść.Direction))
                     {
@@ -176,6 +179,16 @@ namespace Ai
 
             return CommandType.rotateRight;
 
+        }
+
+        private Stan SprawdzCzyWogleMamSzanseWejscNaToPole(Sees pole)
+        {
+            if (pole.Background == BackgroundType.black) return Stan.odwiedzony;
+            if (pole.Background == BackgroundType.stone) return Stan.odwiedzony;
+            if (pole.Object != null && pole.Object == ObjectType.stone) return Stan.odwiedzony;
+            if (pole.Building != null && pole.Building.buildingType == BuildingType.altar) return Stan.odwiedzony;
+
+            return Stan.nieodwiedzony;
         }
 
         private DirectionType CofnijSię(DirectionType d)
@@ -226,8 +239,6 @@ namespace Ai
             return true;
         }
 
-      
-
         private bool CzyMogeTamIsc(DirectionType kierunek)
         {
             var pole = unit.seesList.Single(p => p.Direction == kierunek);
@@ -247,12 +258,12 @@ namespace Ai
                 {
                     return CommandType.drag; 
                 }
-
+                
                 return ZmienKierunekPatrzenia(dt);
             }
             else
             {
-                 var k = (CommandType) Enum.Parse(typeof (CommandType), CofnijSię(historiaRuchow[IndexCofaniaRuchow-1]).ToString());
+                var k = (CommandType) Enum.Parse(typeof (CommandType), CofnijSię(historiaRuchow[IndexCofaniaRuchow-1]).ToString());
                 IndexCofaniaRuchow--;
                 return k;
             }

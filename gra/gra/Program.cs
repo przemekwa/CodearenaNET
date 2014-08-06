@@ -67,27 +67,26 @@ namespace gra
             using (var codeArenaTcp = new SilnikTCP("codearena.pl", 7654))
             {
                 codeArenaTcp.WyśliKomunikat("<connect userid=\"329\" hashid=\"ff48b0788df7f00d4a341db86c0c0a81\" /> ");
+
                 Console.Read();
-                Thread.Sleep(2000);
-                var ai = new Ai.Ai();
+                                
+                var silnikSztucznejInteligencji = new Ai.Ai();
 
-                while (true)
+                var xml = new XmlDocument();
+
+                while (xml != null)
                 {
-                    var test = codeArenaTcp.OdbierzKomunikat();
+                    xml = codeArenaTcp.OdbierzXml();
 
-                    if (test != null)
-                    {
-                        var ruch = XmlDoObiektu.Konwersja(test);
-                                               
+                    var graXMl = XmlDoObiektu.Konwersja(xml);
 
+                    //[TODO] Włożyć obsługę drugiej jednostki
 
+                    codeArenaTcp.WyśliKomunikat("<unit id='" + graXMl.listaJednostek[0].id + "'>" + silnikSztucznejInteligencji.DajMiTenRuch(graXMl) + "</unit>");
 
-                        codeArenaTcp.WyśliKomunikat("<unit id='" + ruch.listaJednostek[0].id + "'>" + ai.DajMiTenRuch(ruch) + "</unit>");
-                    }
-
-                //    Thread.Sleep(2000);
-
+                    Thread.Sleep(1000);
                 };
+
                 Console.Read();
             }
         }

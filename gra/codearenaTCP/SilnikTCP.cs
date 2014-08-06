@@ -60,7 +60,12 @@ namespace codearenaTCP
             }
         }
 
-        public XmlDocument OdbierzKomunikat()
+        public XmlDocument OdbierzXml()
+        {
+            return XmlHelper.DajXmla(this.OdbierzKomunikat());
+        }
+
+        public string OdbierzKomunikat()
         {
             try
             {
@@ -93,6 +98,13 @@ namespace codearenaTCP
                         continue;
 
                     }
+                    else if (s.Contains("reresult"))
+                    {
+                        log.Trace(s);
+                        var node = XmlHelper.DajXmla(s).SelectSingleNode("game");
+
+                        Console.WriteLine("Gra zakończona. Wynik: {0}", node.Attributes[0].InnerText);
+                    }
                     else if (s.Contains("error"))
                     {
                         log.Trace(s);
@@ -116,7 +128,8 @@ namespace codearenaTCP
                     else if (!string.IsNullOrEmpty(s))
                     {
                         log.Info(s);
-                        return XmlHelper.DajXmla(s);
+                        Console.WriteLine(s);
+                        return s;
                     }
                    
 

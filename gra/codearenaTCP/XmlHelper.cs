@@ -13,9 +13,11 @@ namespace codearenaTCP
         {
             XmlDocument xml = new XmlDocument();
 
-            xml.LoadXml(tresc);
-
-            return xml;
+            if (xml != null)
+            {
+                xml.LoadXml(tresc);
+            }
+            return null;
         }
     }
 }

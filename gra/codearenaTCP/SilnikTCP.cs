@@ -84,29 +84,32 @@ namespace codearenaTCP
                 {
                     if (s.Contains("response"))
                     {
+                        log.Trace(s);
                         var node = XmlHelper.DajXmla(s).SelectSingleNode("response");
 
                         Console.WriteLine("Odpowiedz z serwera o statusie gry {0}", node.Attributes[0].InnerText);
-                        log.Trace(s);
+                        
 
                         continue;
 
                     }
                     else if (s.Contains("error"))
                     {
+                        log.Trace(s);
                         var node = XmlHelper.DajXmla(s).SelectSingleNode("error");
 
                         Console.WriteLine("Error {0}", node.Attributes[0].InnerText);
-                        log.Trace(s);
+                        
 
                         continue;
                     }
                     else if (s.Contains("ok"))
                     {
+                        log.Trace(s);
                         var node = XmlHelper.DajXmla(s).SelectSingleNode("ok");
 
                         Console.WriteLine("Status ruchu: {0}", node.Name);
-                        log.Trace(s);
+                        
 
                         continue;
                     }
@@ -115,6 +118,7 @@ namespace codearenaTCP
                         log.Info(s);
                         return XmlHelper.DajXmla(s);
                     }
+                   
 
                 }
                 return null;
@@ -123,7 +127,7 @@ namespace codearenaTCP
             {
                 Console.WriteLine("Wystapił błąd podczas odbierania komunikatu {0}", e);
                 log.Error(e);
-                
+               
                 return null;
             }
             

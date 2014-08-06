@@ -1,11 +1,10 @@
 ﻿
-
 using System.Collections.Generic;
 
 
 namespace Ai
 {
-    public class RuchJednostek
+    public class Ai
     {
         static public readonly Dictionary<CommandType, string> CommandDictionary = new Dictionary<CommandType, string>
         {
@@ -18,12 +17,13 @@ namespace Ai
             {CommandType.NE, "<go direction='NE' />"},
             {CommandType.E, "<go direction='E' />"},
             {CommandType.SE, "<go direction='SE' />"},
-            {CommandType.SW, "<go direction='SW' />"}
+            {CommandType.SW, "<go direction='SW' />"},
+            {CommandType.heal, "<go direction='heal' />"}
         };
         
         private List<sessionUnit> listaSesji { get; set; }
 
-        public RuchJednostek()
+        public Ai()
         {
             this.listaSesji = new List<sessionUnit>();
         }
@@ -32,14 +32,16 @@ namespace Ai
         public string DajMiTenRuch(Game gra)
         {
             if (listaSesji.Count == 0)
-             gra.listaJednostek.ForEach(unit=>listaSesji.Add(new sessionUnit(unit)));
+                gra.listaJednostek.ForEach(unit => listaSesji.Add(new sessionUnit(unit)));
 
             foreach (var sessionUnit in listaSesji)
             {
-                return sessionUnit.WyliczRuch();
+                //[TODO] A co jak będą dwie jednostki?
+
+                return sessionUnit.WyliczRuch(gra.listaJednostek[0]);
             }
 
-            return CommandDictionary[CommandType.drag];
+            return null;
         }
     }
 }

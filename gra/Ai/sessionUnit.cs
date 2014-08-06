@@ -1,5 +1,4 @@
 ﻿
-
 using System.Net.Configuration;
 using System.Security.Authentication.ExtendedProtection.Configuration;
 
@@ -10,6 +9,7 @@ namespace Ai
     using System.Linq;
     using System.Text;
 
+   
 
     public struct Wsporzedne
     {
@@ -19,92 +19,214 @@ namespace Ai
 
     public class sessionUnit
     {
+        const int POZIOM_LECZENIA = 80;
+
         private Wsporzedne Alter;
         private int wlasciciel;
 
         private bool czyJestemKoloSwojejBazy;
         private bool czyMogeSieLeczyc;
-        
+        private int IndexAktualnegoWieszcholka;
+        private List<Wieszcholek> listaWieszcholkow;
+        private DirectionType poprzedniRuch;
+        private List<DirectionType> historiaRuchow;
+        private int IndexCofaniaRuchow;
+        private 
+
         Unit unit { get; set; }
 
         public sessionUnit(Unit jednostka)
         {
             this.unit = jednostka;
             this.wlasciciel = jednostka.player;
+            this.listaWieszcholkow = new List<Wieszcholek>();
+            this.historiaRuchow = new List<DirectionType>();
         }
 
         private readonly List<Sees> listaPolGdzieMogeIsc = new List<Sees>();
 
-        private List<DirectionType> skadPrzyzedłem = new List<DirectionType>();
+        private Wieszcholek skadPrzyzedłem;
 
-        int[,] gdzieBylem = new int[50,50];
 
-        public string WyliczRuch()
+
+        public string WyliczRuch(Unit jednostka)
         {
-            Zamelduj();
+            this.unit = jednostka;
+            DodajWieszchołek();
+            GdzieMogeIsc();
 
-            CzyJestemKołoBazy();
+            // Leczenie.
+            if (CzyJestemKołoBazy())
+            {
+                if (CzyMamSieLeczyc())
+                {
+                    if (unit.action != ActionType.dragging)
+                    {
+                        return Ai.CommandDictionary[LeczSie()];
+                    }
+                }
+            }
 
-            listaPolGdzieMogeIsc.Clear();
+            if (CzyJestDiament())
+            {
+                foreach (var pole in unit.seesList)
+                {
+                    if (pole.Object != null && pole.Object == ObjectType.diamond)
+                    {
+                        return Ai.CommandDictionary[ZnalazłemDiamend(pole.Direction)];
+                    }
+                }
+
+               
+            }
+
+
+            var komenda = AlgorytmEksploracji();
             
-            return RuchJednostek.CommandDictionary[WyliczKierunek()];
+
+          //  return RuchJednostek.CommandDictionary[WyliczKierunek()];
+          // [TODO] Co to jest ten ruch jednostek?
+            return Ai.CommandDictionary[komenda];
         }
 
-        private CommandType WyliczKierunek()
+      
+
+        private bool CzyJestDiament()
         {
             foreach (var pole in unit.seesList)
             {
-                if (CzyMogeTamIsc(pole.Direction) )
+                if (pole.Object != null && pole.Object == ObjectType.diamond)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private void GdzieMogeIsc()
+        {
+            listaPolGdzieMogeIsc.Clear();
+
+            foreach (var pole in unit.seesList)
+            {
+                if (CzyMogeTamIsc(pole.Direction))
                 {
                     listaPolGdzieMogeIsc.Add(pole);
                 }
             }
-
-            if (listaPolGdzieMogeIsc.Count == 0)
-            {
-                return CommandType.rotateLeft;
-            }
-
-            if (listaPolGdzieMogeIsc.Count == 1)
-            {
-                return Konwersje.GetActionType(listaPolGdzieMogeIsc[0].Direction);
-            }
-
-            
-            foreach (var seese in listaPolGdzieMogeIsc)
-            {
-                if (unit.x == unit.y)
-                {
-                    return Konwersje.GetActionType(seese.Direction);
-                }
-               
-                if (unit.x > unit.y)
-                {
-                    if (seese.Direction == DirectionType.SE || seese.Direction == DirectionType.SW || seese.Direction == DirectionType.E)
-                    {
-                        return Konwersje.GetActionType(seese.Direction);
-                    }
-
-                }
-                
-                if (unit.x < unit.y)
-                {
-                    if (seese.Direction == DirectionType.NE || seese.Direction == DirectionType.NW ||  seese.Direction == DirectionType.W)
-                    {
-                        return Konwersje.GetActionType(seese.Direction);
-                    }
-                }
-            }
-
-            return Konwersje.GetActionType(listaPolGdzieMogeIsc.First().Direction);
-
         }
 
-
-        private void Zamelduj()
+        private CommandType AlgorytmEksploracji()
         {
-            gdzieBylem[unit.x, unit.y] = 1;
+            // Zapisz wieszchołek, na którym jestem. [TODO] Co zrobić z tymi na których jest kamień i diamend i mogą się zrobić wolne w trakcje gry.
+
+            var lisceOdwiedzone = true;
+
+            //Weź pierwszy nie odwiedzony liść
+
+            if (listaWieszcholkow[IndexAktualnegoWieszcholka].stan == Stan.nieodwiedzony)
+            {
+                foreach (var liść in listaWieszcholkow[IndexAktualnegoWieszcholka].listaLisci)
+                {
+                    if (liść.stan == Stan.nieodwiedzony)
+                    {
+                        lisceOdwiedzone = false;
+                    }
+
+                    //if (CzyMogeTamIsc(liść.Direction))
+                    //{
+                    //    //[TODO] Trzeba coś z kamienaimi zrobić i z diametami i bazą.
+                    //    liść.stan = Stan.odwiedzony;
+                    //}
+
+
+                    if (liść.stan == Stan.nieodwiedzony && CzyMogeTamIsc(liść.Direction))
+                    {
+                        liść.stan = Stan.odwiedzony;
+                        historiaRuchow.Add(liść.Direction);
+                        IndexCofaniaRuchow++;
+                        return (CommandType) Enum.Parse(typeof (CommandType), liść.Direction.ToString());
+                    }
+                }
+
+                if (lisceOdwiedzone)
+                {
+                    listaWieszcholkow[IndexAktualnegoWieszcholka].stan = Stan.odwiedzony;
+                }
+            }
+
+            //Nie było nic do odwiedzenia. 
+
+            //Idz do poprzedniego wieszchołka
+
+            var kierunek = CofnijSię(historiaRuchow[IndexCofaniaRuchow]);
+            IndexCofaniaRuchow--;
+
+            //[TODO] Ideeks cofania zmienijszyć.
+
+            if (CzyMogeTamIsc(kierunek)) // Niby idiotyczne ale może ktos tam się pojawić i jakiś obiekt albo player
+            {
+                return (CommandType)Enum.Parse(typeof(CommandType), kierunek.ToString());
+            }
+            
+
+            // To znaczy, że jestem zablokowany. Same kamienie dookoła, lub jestem zablokowany przez kogoś
+
+            // [TODO] Co zrobić jak mnie ktoś zablokuje.
+
+            return CommandType.rotateRight;
+
         }
+
+        private DirectionType CofnijSię(DirectionType d)
+        {
+            switch (d)
+            {
+                case DirectionType.NE:
+                    return DirectionType.SW;
+                case DirectionType.NW:
+                    return DirectionType.SE;
+                case DirectionType.SE:
+                    return DirectionType.NW;
+                case DirectionType.SW:
+                    return DirectionType.NE;
+                case DirectionType.E:
+                    return DirectionType.W;
+                case DirectionType.W:
+                    return DirectionType.E;
+                default:
+                    return d;
+            }
+        }
+
+        private bool DodajWieszchołek()
+        {
+            for (var i = 0; i < listaWieszcholkow.Count; i++)
+            {
+                if ((listaWieszcholkow[i].x == unit.x) && (listaWieszcholkow[i].y == unit.y))
+                {
+                    IndexAktualnegoWieszcholka = i;
+                    return false;
+                }
+            }
+
+            var tempWieszch = new Wieszcholek
+            {
+                x = unit.x,
+                y = unit.y,
+                stan = Stan.nieodwiedzony,
+                listaLisci = unit.seesList,
+                p = 0
+            };
+
+            listaWieszcholkow.Add(tempWieszch);
+
+            IndexAktualnegoWieszcholka = listaWieszcholkow.IndexOf(tempWieszch);
+
+            return true;
+        }
+
+      
 
         private bool CzyMogeTamIsc(DirectionType kierunek)
         {
@@ -117,23 +239,31 @@ namespace Ai
             return pole.Building == null || pole.Building.buildingType != BuildingType.altar;
         }
 
-        CommandType ZnalazłemDiamend(DirectionType dt)
+        private CommandType ZnalazłemDiamend(DirectionType dt)
         {
-            if (unit.orientation == dt)
+            if (unit.action != ActionType.dragging)
             {
-                return CommandType.drag;
-            }
+                if (unit.orientation == dt)
+                {
+                    return CommandType.drag; 
+                }
 
-            return CommandType.rotateLeft;
+                return ZmienKierunekPatrzenia(dt);
+            }
+            else
+            {
+                 var k = (CommandType) Enum.Parse(typeof (CommandType), CofnijSię(historiaRuchow[IndexCofaniaRuchow-1]).ToString());
+                IndexCofaniaRuchow--;
+                return k;
+            }
         }
 
-
-        bool CzyJednostkaWidziKrawedz()
+        private bool CzyJednostkaWidziKrawedz()
         {
             return unit.seesList.Any(pole => pole.Background == BackgroundType.black);
         }
 
-        bool CzyJestemKołoBazy()
+        private bool CzyJestemKołoBazy()
         {
             var poleZBaza =
                 unit.seesList.SingleOrDefault(
@@ -152,11 +282,56 @@ namespace Ai
 
                 return true;
             }
-           
+
             czyMogeSieLeczyc = false;
             czyJestemKoloSwojejBazy = false;
-                
+
             return false;
+        }
+
+        private bool CzyMamSieLeczyc()
+        {
+            return unit.hp < POZIOM_LECZENIA;
+        }
+
+        private CommandType LeczSie()
+        {
+            var kierunekDoBazy =
+                unit.seesList.SingleOrDefault(
+                    pole =>
+                        pole.Building != null && pole.Building.buildingType == BuildingType.altar &&
+                        pole.Building.player == wlasciciel);
+
+            if (kierunekDoBazy != null)
+            {
+                return kierunekDoBazy.Direction == unit.orientation ? CommandType.heal : ZmienKierunekPatrzenia(kierunekDoBazy.Direction);
+            }
+            return CommandType.rotateRight;
+        }
+
+        private CommandType ZmienKierunekPatrzenia(DirectionType d)
+        {
+            //[TODO] Obsługa akcji dragging.
+
+            var docelowaOrientacja = (int) unit.orientation;
+            var prawo = false;
+
+            for (var i = 0; i < 2; i++)
+            {
+                docelowaOrientacja++;
+
+                if (docelowaOrientacja == 6)
+                {
+                    docelowaOrientacja = 0;
+                }
+
+                if (docelowaOrientacja == (int) d)
+                {
+                    prawo = true;
+                }
+            }
+
+            return  prawo?CommandType.rotateRight:CommandType.rotateLeft;
         }
     }
 }

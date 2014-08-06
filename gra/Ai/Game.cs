@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Ai
 {
-    public enum DirectionType { NE, E, SE, SW, W, NW }
+    public enum DirectionType { NW, NE, E, SE, SW, W }
 
     public enum BackgroundType { green, orange, blue, red, black, stone }
 
@@ -15,9 +15,11 @@ namespace Ai
 
     public enum BuildingType { altar }
 
-    public enum CommandType { rotateRight, rotateLeft, drop, drag, NW, W, NE, E, SE, SW, heal }
+    public enum CommandType { rotateRight, rotateLeft, drop, drag, NW, W, NE, E, SE, SW, heal, error }
 
     public enum ActionType { dragging }
+
+    public enum Stan { nieodwiedzony, odwiedzony }
 
     public class Game
     {
@@ -33,6 +35,7 @@ namespace Ai
         public BackgroundType Background { get; set; }
         public Building Building { get; set; }
         public ObjectType? Object { get; set; }
+        public Stan stan { get; set; }
     }
 
     public class Unit

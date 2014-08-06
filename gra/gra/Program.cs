@@ -69,6 +69,7 @@ namespace gra
                 codeArenaTcp.WyśliKomunikat("<connect userid=\"329\" hashid=\"ff48b0788df7f00d4a341db86c0c0a81\" /> ");
                 Console.Read();
                 Thread.Sleep(2000);
+                var ai = new Ai.Ai();
 
                 while (true)
                 {
@@ -77,15 +78,14 @@ namespace gra
                     if (test != null)
                     {
                         var ruch = XmlDoObiektu.Konwersja(test);
+                                               
 
-
-                        var ai = new RuchJednostek();
 
 
                         codeArenaTcp.WyśliKomunikat("<unit id='" + ruch.listaJednostek[0].id + "'>" + ai.DajMiTenRuch(ruch) + "</unit>");
                     }
 
-                    Thread.Sleep(2000);
+                //    Thread.Sleep(2000);
 
                 };
                 Console.Read();

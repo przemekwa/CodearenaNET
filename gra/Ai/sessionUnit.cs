@@ -4,12 +4,12 @@ using System.Security.Authentication.ExtendedProtection.Configuration;
 
 namespace Ai
 {
-    using System;
+     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
 
-   
+
 
     public struct Wsporzedne
     {
@@ -33,8 +33,9 @@ namespace Ai
         private int IndexCofaniaRuchow;
         private DirectionType NamiaryNaDiament;
         private DirectionType NamiaryNaBaze;
-        bool test = true ;
         Unit unit { get; set; }
+
+        private BackgroundType TypPolaNaKtorymStoje;
 
         public sessionUnit(Unit jednostka)
         {
@@ -84,10 +85,9 @@ namespace Ai
             }
 
             var komenda = AlgorytmEksploracji();
-            
 
-          //  return RuchJednostek.CommandDictionary[WyliczKierunek()];
-          // [TODO] Co to jest ten ruch jednostek?
+
+            
             return Ai.CommandDictionary[komenda];
         }
 
@@ -143,13 +143,14 @@ namespace Ai
             {
                 foreach (var liść in listaWieszcholkow[IndexAktualnegoWieszcholka].listaLisci)
                 {
-                    ///
-                    /// Jeśli nie mogę wejść na pole to uzaje, że nie da się tam wejść i ustawiam, że to pole odwiedziłem.
-                    ///
+                    //
+                    // Jeśli nie mogę wejść na pole to uzaje, że nie da się tam wejść i ustawiam, że to pole odwiedziłem.
+                    //
 
                     if (liść.stan == Stan.nieodwiedzony)
                     {
                         liść.stan = SprawdzCzyWogleMamSzanseWejscNaToPole(liść);
+                        // [TODO] Dodać priorytet do algorytmu
                         lisceOdwiedzone = false;
                     }
 
@@ -161,7 +162,8 @@ namespace Ai
                     {
                         liść.stan = Stan.odwiedzony;
                         historiaRuchow.Add(liść.Direction);
-                        return (CommandType) Enum.Parse(typeof (CommandType), liść.Direction.ToString());
+                        ZapiszPoleNaKtorymBedeStal(liść.Direction);
+                        return (CommandType)Enum.Parse(typeof(CommandType), liść.Direction.ToString());
                     }
                 }
 
@@ -176,14 +178,15 @@ namespace Ai
             //Idz do poprzedniego wieszchołka
 
             var kierunek = CofnijSię(historiaRuchow.Last());
-            
+
 
             if (CzyMogeTamIsc(kierunek)) // Niby idiotyczne ale może ktos tam się pojawić i jakiś obiekt albo player
             {
+                ZapiszPoleNaKtorymBedeStal(historiaRuchow.Last());
                 historiaRuchow.Remove(historiaRuchow.Last());
                 return (CommandType)Enum.Parse(typeof(CommandType), kierunek.ToString());
             }
-            
+
 
             // To znaczy, że jestem zablokowany. Same kamienie dookoła, lub jestem zablokowany przez kogoś
 
@@ -191,6 +194,11 @@ namespace Ai
 
             return CommandType.rotateRight;
 
+        }
+
+        private void ZapiszPoleNaKtorymBedeStal(DirectionType d)
+        {
+            TypPolaNaKtorymStoje  = unit.seesList.Single(p => p.Direction == d).Background;
         }
 
         private Stan SprawdzCzyWogleMamSzanseWejscNaToPole(Sees pole)
@@ -264,29 +272,99 @@ namespace Ai
 
         private CommandType ZnalazłemDiamend(DirectionType dt)
         {
+            //[TODO] ustaw odpowiednia diament
             if (unit.action != ActionType.dragging)
             {
                 if (unit.orientation == dt)
                 {
-                    return CommandType.drag; 
+                    return CommandType.drag;
                 }
-                
+
                 return ZmienKierunekPatrzenia(dt);
             }
             else
             {
                 //[ToDo] Numery wieszchiołów.
-                if (test)
+
+
+                var kierunek = historiaRuchow.Last();
+
+                var komenda = (CommandType)Enum.Parse(typeof(CommandType), CofnijSię(kierunek).ToString());
+
+                if (CzyDianemStoiWOdpowiedniejPozycji(kierunek))
                 {
-                    test = false;
-                    return CommandType.rotateRight;
+                    if (CzyDiamentMozeSiePoruszyc(kierunek))
+                    {
+                        historiaRuchow.Remove(historiaRuchow.Last());
+                        return komenda;
+                    }
+                    return UstawDiamentWodpowiedniejPozycji(historiaRuchow.Last());
                 }
-
-                var k = (CommandType) Enum.Parse(typeof (CommandType), CofnijSię(historiaRuchow.Last()).ToString());
-                historiaRuchow.Remove(historiaRuchow.Last());
-
-                return k;
+                return UstawDiamentTakAbyByloMoznaGoporuszyc(kierunek);
             }
+        }
+
+
+
+        private bool CzyDiamentMozeSiePoruszyc(DirectionType d)
+        {
+            var prawo = listaWieszcholkow[IndexAktualnegoWieszcholka].listaLisci[((int)d + 1) == 6 ? 1 : (int)d + 1].Background;
+            var lewo = listaWieszcholkow[IndexAktualnegoWieszcholka].listaLisci[((int)d - 1) == -1 ? 5 : (int)d - 1].Background;
+            var przod = TypPolaNaKtorymStoje;
+
+            if ((((int)d + 3) >= 6 ? (int)d - 3 : (int)d + 3) == (int)NamiaryNaDiament)
+            {
+                if (przod == BackgroundType.orange) return false;
+                return true;
+            }
+
+            if ((((int)d + 2) >= 6 ? (int)d - 4 : (int)d + 2) == (int)NamiaryNaDiament)
+            {
+                if (prawo == BackgroundType.orange) return false;
+                if (prawo == BackgroundType.stone) return false;
+                return true;
+            }
+
+            if ((((int)d - 2) <= -1 ? (int)d + 4 : (int)d - 2) == (int)NamiaryNaDiament)
+            {
+                if (lewo == BackgroundType.orange) return false;
+                if (prawo == BackgroundType.stone) return false;
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool CzyDianemStoiWOdpowiedniejPozycji(DirectionType d)
+        {
+            var lewo = ((int)d + 1) == 6 ? 1 : (int)d + 1;
+            var prawo = ((int)d - 1) == -1 ? 5 : (int)d - 1;
+            var przod = (int)d;
+
+            return lewo != (int)NamiaryNaDiament && prawo != (int)NamiaryNaDiament && przod != (int)NamiaryNaDiament;
+        }
+
+        private CommandType UstawDiamentTakAbyByloMoznaGoporuszyc(DirectionType d)
+        {
+            return CommandType.rotateRight;
+        }
+
+        private CommandType UstawDiamentWodpowiedniejPozycji(DirectionType d)
+        {
+            var prawo = listaWieszcholkow[IndexAktualnegoWieszcholka].listaLisci[((int)NamiaryNaDiament + 1) == 6 ? 1 : (int)d + 1].Background;
+            var lewo = listaWieszcholkow[IndexAktualnegoWieszcholka].listaLisci[((int)NamiaryNaDiament - 1) == -1 ? 5 : (int)d - 1].Background;
+
+            for (int i = 1; i < 3; i++)
+            {
+                if (
+                    listaWieszcholkow[IndexAktualnegoWieszcholka].listaLisci[
+                        ((int)NamiaryNaDiament + i) == 6 ? 1 : (int)d + i].Background == BackgroundType.orange)
+                {
+
+                }
+            }
+
+            return CommandType.rotateRight;
         }
 
         private bool CzyJestemKołoBazy()
@@ -340,7 +418,7 @@ namespace Ai
         {
             //[TODO] Obsługa akcji dragging.
 
-            var docelowaOrientacja = (int) unit.orientation;
+            var docelowaOrientacja = (int)unit.orientation;
             var prawo = false;
 
             for (var i = 0; i < 2; i++)
@@ -352,13 +430,47 @@ namespace Ai
                     docelowaOrientacja = 0;
                 }
 
-                if (docelowaOrientacja == (int) d)
+                if (docelowaOrientacja == (int)d)
                 {
                     prawo = true;
                 }
             }
 
-            return  prawo?CommandType.rotateRight:CommandType.rotateLeft;
+            return prawo ? CommandType.rotateRight : CommandType.rotateLeft;
+        }
+
+        private DirectionType ObróćWPrawo(DirectionType d, int a)
+        {
+            var wynik = (int) d;
+
+            if (a > 0)
+            {
+                for (var i = 0; i < a - 1; i++)
+                {
+                    wynik++;
+
+                    if (wynik >= 6)
+                    {
+                        wynik = 0;
+                    }
+                }
+            }
+            else if(a<0)
+            {
+                for (var i = 0; i < Math.Abs(a) - 1; i++)
+                {
+                    wynik--;
+
+                    if (wynik < 0)
+                    {
+                        wynik = 5;
+                    }
+                }
+            }
+           
+          return (DirectionType)wynik;
+            
+            
         }
     }
 }

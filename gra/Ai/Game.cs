@@ -48,8 +48,7 @@ namespace Ai
     public class Unit
     {
         public string id { get; set; }
-        public int x { get; set; }
-        public int y { get; set; }
+        public Wsporzedne wsporzedne { get; set; }
         public int hp { get; set; }
         public string status { get; set; }
         public ActionType? action { get; set; }

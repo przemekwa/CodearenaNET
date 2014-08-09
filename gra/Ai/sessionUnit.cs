@@ -64,10 +64,10 @@ namespace Ai
             //
             if (CzyJestemKołoBazy())
             {
-                //if (CzyJestDiament() && unit.action == ActionType.dragging)
-                //{
-                //    return Ai.CommandDictionary[OdłózDiament()];
-                //}
+                if (CzyJestDiament() && unit.action == ActionType.dragging)
+                {
+                    return Ai.CommandDictionary[OdłózDiament()];
+                }
                 if (CzyMamSieLeczyc())
                 {
                     if (unit.action != ActionType.dragging)
@@ -213,16 +213,33 @@ namespace Ai
 
 
 
+            var DostępneWsporzedne = Help.ZnajdzSąsiadów(this.unit.wsporzedne);
+
+
             for (var i = 0; i < listaWieszcholkow.Count; i++)
             {
-                if ((listaWieszcholkow[i].x == unit.x) && (listaWieszcholkow[i].y == unit.y))
+                if ((listaWieszcholkow[i].wsporzedne.x == unit.wsporzedne.x) && (listaWieszcholkow[i].wsporzedne.y == unit.wsporzedne.y))
                 {
                     IndexAktualnegoWieszcholka = i;
-                    
+
+                    foreach (var l in listaWieszcholkow[IndexAktualnegoWieszcholka].listaLisci)
+                    {
+                        var temp = listaWieszcholkow.SingleOrDefault(p => p.wsporzedne.Equals(l.wsporzedne));
+
+                        if (temp != null)
+                        {
+                            listaWieszcholkow[IndexAktualnegoWieszcholka].listaLisci.SingleOrDefault(p => p.wsporzedne.Equals(l.wsporzedne)).stan = Stan.odwiedzony;
+                        }
+                    }
+
+
                     return false;
                 }
             }
-            var tempWieszch = new Wieszcholek(unit.x,unit.y,unit.seesList)
+
+
+
+            var tempWieszch = new Wieszcholek(this.unit.wsporzedne,unit.seesList)
             {
                 stan = Stan.nieodwiedzony,
                 p = 0
@@ -235,6 +252,16 @@ namespace Ai
             IndexAktualnegoWieszcholka = listaWieszcholkow.IndexOf(tempWieszch);
 
 
+            foreach (var i in listaWieszcholkow[IndexAktualnegoWieszcholka].listaLisci)
+            {
+               var temp =  listaWieszcholkow.SingleOrDefault(p=>p.wsporzedne.Equals(i.wsporzedne));
+
+               if (temp != null)
+               {
+                   listaWieszcholkow[IndexAktualnegoWieszcholka].listaLisci.SingleOrDefault(p => p.wsporzedne.Equals(i.wsporzedne)).stan = Stan.odwiedzony;
+               }
+            }
+           
 
 
 
@@ -353,8 +380,7 @@ namespace Ai
             pole.Building.player == wlasciciel);
             if (poleZBaza != null)
             {
-                Alter.x = unit.x;
-                Alter.y = unit.y;
+                Alter = this.unit.wsporzedne;
                 czyJestemKoloSwojejBazy = true;
                 NamiaryNaBaze = poleZBaza.Direction;
                 if (unit.orientation == poleZBaza.Direction)

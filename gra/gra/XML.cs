@@ -28,8 +28,12 @@ namespace Ai
                 var tempUnit = new Unit
                 {
                     id = unit.Attributes["id"].InnerText,
-                    x = Int32.Parse(unit.Attributes["x"].InnerText),
+                    
+                    wsporzedne = new Wsporzedne
+                    {
+                    x= Int32.Parse(unit.Attributes["x"].InnerText),
                     y = Int32.Parse(unit.Attributes["y"].InnerText),
+                    },
                     status = unit.Attributes["status"].InnerText,
                     action = string.IsNullOrEmpty(unit.Attributes["action"].InnerText) ? (ActionType?)null : (ActionType)Enum.Parse(typeof(ActionType), unit.Attributes["action"].InnerText),
                     orientation = (DirectionType)Enum.Parse(typeof(DirectionType), unit.Attributes["orientation"].InnerText),

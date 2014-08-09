@@ -51,6 +51,9 @@ namespace Ai
         private Wieszcholek skadPrzyzedłem;
         public string WyliczRuch(Unit jednostka)
         {
+
+         
+
             this.unit = jednostka;
             
 
@@ -215,36 +218,41 @@ namespace Ai
                 if ((listaWieszcholkow[i].x == unit.x) && (listaWieszcholkow[i].y == unit.y))
                 {
                     IndexAktualnegoWieszcholka = i;
-                    KopiujPoprzednieStanyPola();
+                    
                     return false;
                 }
             }
-            var tempWieszch = new Wieszcholek
+            var tempWieszch = new Wieszcholek(unit.x,unit.y,unit.seesList)
             {
-                x = unit.x,
-                y = unit.y,
                 stan = Stan.nieodwiedzony,
-                listaLisci = unit.seesList,
                 p = 0
             };
+
+
+
+
             listaWieszcholkow.Add(tempWieszch);
             IndexAktualnegoWieszcholka = listaWieszcholkow.IndexOf(tempWieszch);
 
-            KopiujPoprzednieStanyPola();
+
+
+
+
+         //   KopiujPoprzednieStanyPola();
 
 
             return true;
         }
 
-        private void KopiujPoprzednieStanyPola()
+        private void KopiujPoprzednieStanyPola(int indexWieszcholkaDoPolaczenia)
         {
             if (listaWieszcholkow.Count > 2)
             {
                 var lewo = listaWieszcholkow[IndexAktualnegoWieszcholka].listaLisci.Single(p => p.DirectionNumber == (((int)CofnijSię(PoprzedniKierunek) + 1) == 6 ? 1 : ((int)CofnijSię(PoprzedniKierunek) + 1)));
                 var prawo = listaWieszcholkow[IndexAktualnegoWieszcholka].listaLisci.Single(p => p.DirectionNumber == (((int)CofnijSię(PoprzedniKierunek) - 1) == -1 ? 5 : ((int)CofnijSię(PoprzedniKierunek) - 1)));
 
-                lewo.stan = listaWieszcholkow[IndexAktualnegoWieszcholka - 1].listaLisci.Single(p => p.DirectionNumber == (((int)PoprzedniKierunek + 1) == 6 ? 1 : ((int)PoprzedniKierunek + 1))).stan;
-                prawo.stan = listaWieszcholkow[IndexAktualnegoWieszcholka - 1].listaLisci.Single(p => p.DirectionNumber == (((int)PoprzedniKierunek - 1) == -1 ? 5 : ((int)PoprzedniKierunek - 1))).stan;
+                lewo.stan = listaWieszcholkow[indexWieszcholkaDoPolaczenia].listaLisci.Single(p => p.DirectionNumber == (((int)PoprzedniKierunek + 1) == 6 ? 1 : ((int)PoprzedniKierunek + 1))).stan;
+                prawo.stan = listaWieszcholkow[indexWieszcholkaDoPolaczenia].listaLisci.Single(p => p.DirectionNumber == (((int)PoprzedniKierunek - 1) == -1 ? 5 : ((int)PoprzedniKierunek - 1))).stan;
 
             }
         }

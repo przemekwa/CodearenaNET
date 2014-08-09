@@ -1,20 +1,16 @@
-﻿
-namespace Ai
+﻿namespace Ai
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
-
-   
    
     public class Wieszcholek
     {
-       
-
         public Wsporzedne wsporzedne { get; set; }
-
-        public List<Sees> listaLisci { get; private set; } 
+        public List<Sees> listaLisci { get; private set; }
+        public int Priorytet { get; set; }
+        public Stan Stan { get; set; }
 
         public Wieszcholek(Wsporzedne w, List<Sees> lista)
         {
@@ -34,9 +30,11 @@ namespace Ai
                     case DirectionType.E:
                         lisc.wsporzedne = new Wsporzedne { x = this.wsporzedne.x + 1, y = this.wsporzedne.y };
                         break;
+
                     case DirectionType.W:
                         lisc.wsporzedne = new Wsporzedne { x = this.wsporzedne.x - 1, y = this.wsporzedne.y };
                         break;
+
                     case DirectionType.NE:
                         if (czyParzystaCzescPolaX)
                         {
@@ -44,13 +42,14 @@ namespace Ai
                         }
                         else
                         {
-                            lisc.wsporzedne = new Wsporzedne { x = this.wsporzedne.x +1, y = this.wsporzedne.y - 1 };
+                            lisc.wsporzedne = new Wsporzedne { x = this.wsporzedne.x + 1, y = this.wsporzedne.y - 1 };
                         }
                         break;
+
                     case DirectionType.NW:
                         if (czyParzystaCzescPolaX)
                         {
-                            lisc.wsporzedne = new Wsporzedne { x = this.wsporzedne.x-1, y = this.wsporzedne.y - 1 };
+                            lisc.wsporzedne = new Wsporzedne { x = this.wsporzedne.x - 1, y = this.wsporzedne.y - 1 };
                         }
                         else
                         {
@@ -79,16 +78,8 @@ namespace Ai
                             lisc.wsporzedne = new Wsporzedne { x = this.wsporzedne.x, y = this.wsporzedne.y + 1 };
                         }
                         break;
-
-
                 }
             }
         }
-
-       
-
-        public int p { get; set; }
-        public Stan stan { get; set; }
-        
     }
 }

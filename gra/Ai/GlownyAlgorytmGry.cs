@@ -8,18 +8,13 @@ namespace Ai
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
-    public struct Wsporzedne
-    {
-        public int x { get; set; }
-        public int y { get; set; }
-    }
-    public class sessionUnit
+    
+    public class GlownyAlgorytmGry
     {
         const int POZIOM_LECZENIA = 80;
 
         private Wsporzedne Alter;
         private int wlasciciel;
-  
  
         private int IndexAktualnegoWieszcholka;
         private List<Wieszcholek> listaWieszcholkow;
@@ -33,33 +28,32 @@ namespace Ai
         Unit unit { get; set; }
         private BackgroundType TypPolaNaKtorymStoje;
 
-        public sessionUnit(Unit jednostka)
+        private Graph graf { get; set; }
+
+        public GlownyAlgorytmGry(Unit jednostka)
         {
             this.unit = jednostka;
             this.wlasciciel = jednostka.player;
             this.listaWieszcholkow = new List<Wieszcholek>();
             this.historiaRuchow = new List<DirectionType>();
-
-
-
-
-            historiaRuchow.Add(DirectionType.E);
-
+            graf = new Graph();
         }
+
         private readonly List<Sees> listaPolGdzieMogeIsc = new List<Sees>();
     
         public string WyliczRuch(Unit jednostka)
         {
             this.unit = jednostka;
-            
-
             DodajWieszchołek();
        
             //
             // Leczenie.
             //
+            
             if (CzyJestemKołoBazy())
             {
+                
+
                 if (CzyJestDiament() && unit.action == ActionType.dragging)
                 {
                     return Ai.CommandDictionary[OdłózDiament()];
@@ -72,14 +66,22 @@ namespace Ai
                     }
                 }
             }
+
             //
             // Szukanie diamentu
             //
-            //if (CzyJestDiament())
-            //{
-            //    return Ai.CommandDictionary[ZnalazłemDiamend(NamiaryNaDiament)];
-            //}
+
+            if (CzyJestDiament())
+            {
+                return Ai.CommandDictionary[ZnalazłemDiamend(NamiaryNaDiament)];
+            }
+
+            //
+            // Chodzenie
+            //
+
             var komenda = AlgorytmEksploracji();
+
             return Ai.CommandDictionary[komenda];
         }
         private CommandType OdłózDiament()
@@ -92,17 +94,24 @@ namespace Ai
         }
         private bool CzyJestDiament()
         {
-            foreach (var pole in unit.seesList)
-            {
-                if (pole.Object != null && pole.Object == ObjectType.diamond)
-                {
-                    NamiaryNaDiament = pole.Direction;
-                    return true;
-                }
-            }
+            //foreach (var pole in unit.seesList)
+            //{
+            //    if (pole.Object != null && pole.Object == ObjectType.diamond)
+            //    {
+            //        NamiaryNaDiament = pole.Direction;
+            //        return true;
+            //    }
+            //}
             return false;
         }
-       
+
+        private void WyliczDrogę(Wieszcholek w)
+        {
+            if (graf.CalculateShortestPath())
+            {
+                var r = graf.RetrieveShortestPath(new Vector2D(w.wsporzedne.x,w.wsporzedne.y,false));
+            }
+          }
         private CommandType AlgorytmEksploracji()
         {
             //
@@ -112,7 +121,7 @@ namespace Ai
             //
             // Weź pierwszy nie odwiedzony liść.
             //
-            if (listaWieszcholkow[IndexAktualnegoWieszcholka].stan == Stan.nieodwiedzony)
+            if (listaWieszcholkow[IndexAktualnegoWieszcholka].Stan == Stan.nieodwiedzony)
             {
                 foreach (var liść in listaWieszcholkow[IndexAktualnegoWieszcholka].listaLisci)
                 {
@@ -139,19 +148,24 @@ namespace Ai
                 }
                 if (lisceOdwiedzone)
                 {
-                    listaWieszcholkow[IndexAktualnegoWieszcholka].stan = Stan.odwiedzony;
+                    listaWieszcholkow[IndexAktualnegoWieszcholka].Stan = Stan.odwiedzony;
                 }
             }
+            
             //Nie było nic do odwiedzenia.
             //Idz do poprzedniego wieszchołka
+
             var kierunek = CofnijSię(historiaRuchow.Last());
             if (CzyMogeTamIsc(kierunek)) // Niby idiotyczne ale może ktos tam się pojawić i jakiś obiekt albo player
             {
                 historiaRuchow.Remove(historiaRuchow.Last());
                 return (CommandType)Enum.Parse(typeof(CommandType), kierunek.ToString());
             }
+
             // To znaczy, że jestem zablokowany. Same kamienie dookoła, lub jestem zablokowany przez kogoś
             // [TODO] Co zrobić jak mnie ktoś zablokuje.
+
+
             return CommandType.rotateRight;
         }
       
@@ -209,9 +223,15 @@ namespace Ai
            
            var tempWieszch = new Wieszcholek(this.unit.wsporzedne, unit.seesList)
            {
-               stan = Stan.nieodwiedzony,
-               p = 0
+               Stan = Stan.nieodwiedzony,
+               Priorytet = 0
            };
+
+            //
+            // Dodaje wieszchołek do algorytmu szukania ścieżki.
+            //
+
+           graf.AddVertex(new Vector2D(tempWieszch.wsporzedne.x, tempWieszch.wsporzedne.y, false));
 
             //
             // I łącze z pozostałymi
@@ -337,7 +357,7 @@ namespace Ai
             if (poleZBaza != null)
             {
                 Alter = this.unit.wsporzedne;
-             
+                this.graf.SourceVertex = new Vector2D(Alter.x, Alter.y, false);
                 NamiaryNaBaze = poleZBaza.Direction;
             
                

@@ -15,7 +15,6 @@ namespace Ai
             var tablica1 = new int[3] { ws.x, ws.x + 1, ws.x - 1 };
             var tablica2 = new int[3] { ws.y, ws.y + 1, ws.y - 1 };
 
-
             foreach (var x in tablica1)
             {
                 foreach (var y in tablica2)
@@ -25,7 +24,6 @@ namespace Ai
             }
 
             lista.Remove(ws);
-
 
             return lista;
         }

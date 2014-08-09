@@ -1,7 +1,6 @@
 ﻿
 using System.Collections.Generic;
 
-
 namespace Ai
 {
     public class Ai
@@ -21,18 +20,18 @@ namespace Ai
             {CommandType.heal, "<go action='heal' />"}
         };
         
-        private List<sessionUnit> listaSesji { get; set; }
+        private List<GlownyAlgorytmGry> listaSesji { get; set; }
 
         public Ai()
         {
-            this.listaSesji = new List<sessionUnit>();
+            this.listaSesji = new List<GlownyAlgorytmGry>();
         }
 
 
         public string DajMiTenRuch(Game gra)
         {
             if (listaSesji.Count == 0)
-                gra.listaJednostek.ForEach(unit => listaSesji.Add(new sessionUnit(unit)));
+                gra.listaJednostek.ForEach(unit => listaSesji.Add(new GlownyAlgorytmGry(unit)));
 
             foreach (var sessionUnit in listaSesji)
             {

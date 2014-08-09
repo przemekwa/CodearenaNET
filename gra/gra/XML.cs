@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 
-
 namespace Ai
 {
     static class XmlDoObiektu

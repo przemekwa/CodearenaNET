@@ -4,9 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-
 namespace Ai
 {
+    public struct Wsporzedne
+    {
+        public int x { get; set; }
+        public int y { get; set; }
+    }
+
     public enum DirectionType { NW, NE, E, SE, SW, W }
 
     public enum BackgroundType { green, orange, blue, red, black, stone }

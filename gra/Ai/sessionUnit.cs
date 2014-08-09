@@ -51,14 +51,11 @@ namespace Ai
         private Wieszcholek skadPrzyzedłem;
         public string WyliczRuch(Unit jednostka)
         {
-
-         
-
             this.unit = jednostka;
             
 
             DodajWieszchołek();
-            GdzieMogeIsc();
+       
             //
             // Leczenie.
             //
@@ -106,17 +103,7 @@ namespace Ai
             }
             return false;
         }
-        private void GdzieMogeIsc()
-        {
-            listaPolGdzieMogeIsc.Clear();
-            foreach (var pole in unit.seesList)
-            {
-                if (CzyMogeTamIsc(pole.Direction))
-                {
-                    listaPolGdzieMogeIsc.Add(pole);
-                }
-            }
-        }
+       
         private CommandType AlgorytmEksploracji()
         {
             //
@@ -206,69 +193,58 @@ namespace Ai
         }
         private bool DodajWieszchołek()
         {
-            if (listaWieszcholkow.Count > 1)
-            {
-                listaWieszcholkow[IndexAktualnegoWieszcholka - 1].listaLisci.Single(p => p.Direction == CofnijSię(historiaRuchow.Last())).stan = Stan.odwiedzony;
-            }
+           //
+           // Sprawdzam czy wieszchołek już istnieje.
+           //
 
+           var nowyWieszchołek = listaWieszcholkow.SingleOrDefault(w=>w.wsporzedne.Equals(unit.wsporzedne));
 
+            //
+            // Jeśli tak, to łącze wieszchołki razem.
+            //
 
-            var DostępneWsporzedne = Help.ZnajdzSąsiadów(this.unit.wsporzedne);
+           if (nowyWieszchołek != null)
+           {
+               IndexAktualnegoWieszcholka = listaWieszcholkow.IndexOf(nowyWieszchołek);
+               PołączWieszchołki(IndexAktualnegoWieszcholka);
 
+               return false;
+           }
 
-            for (var i = 0; i < listaWieszcholkow.Count; i++)
-            {
-                if ((listaWieszcholkow[i].wsporzedne.x == unit.wsporzedne.x) && (listaWieszcholkow[i].wsporzedne.y == unit.wsporzedne.y))
-                {
-                    IndexAktualnegoWieszcholka = i;
+            //
+            // Jeśli nie, to dodaje nowy wieszchołek.
+            //
+           
+           var tempWieszch = new Wieszcholek(this.unit.wsporzedne, unit.seesList)
+           {
+               stan = Stan.nieodwiedzony,
+               p = 0
+           };
 
-                    foreach (var l in listaWieszcholkow[IndexAktualnegoWieszcholka].listaLisci)
-                    {
-                        var temp = listaWieszcholkow.SingleOrDefault(p => p.wsporzedne.Equals(l.wsporzedne));
-
-                        if (temp != null)
-                        {
-                            listaWieszcholkow[IndexAktualnegoWieszcholka].listaLisci.SingleOrDefault(p => p.wsporzedne.Equals(l.wsporzedne)).stan = Stan.odwiedzony;
-                        }
-                    }
-
-
-                    return false;
-                }
-            }
-
-
-
-            var tempWieszch = new Wieszcholek(this.unit.wsporzedne,unit.seesList)
-            {
-                stan = Stan.nieodwiedzony,
-                p = 0
-            };
-
-
+            //
+            // I łącze z pozostałymi
+            //
 
 
             listaWieszcholkow.Add(tempWieszch);
             IndexAktualnegoWieszcholka = listaWieszcholkow.IndexOf(tempWieszch);
-
-
-            foreach (var i in listaWieszcholkow[IndexAktualnegoWieszcholka].listaLisci)
-            {
-               var temp =  listaWieszcholkow.SingleOrDefault(p=>p.wsporzedne.Equals(i.wsporzedne));
-
-               if (temp != null)
-               {
-                   listaWieszcholkow[IndexAktualnegoWieszcholka].listaLisci.SingleOrDefault(p => p.wsporzedne.Equals(i.wsporzedne)).stan = Stan.odwiedzony;
-               }
-            }
-           
-
-
-
-         //   KopiujPoprzednieStanyPola();
-
+            PołączWieszchołki(IndexAktualnegoWieszcholka);
 
             return true;
+        }
+
+        private void PołączWieszchołki(int index)
+        {
+            foreach (var l in listaWieszcholkow[index].listaLisci)
+            {
+                var temp = listaWieszcholkow.SingleOrDefault(p => p.wsporzedne.Equals(l.wsporzedne));
+
+                if (temp != null)
+                {
+                    listaWieszcholkow[IndexAktualnegoWieszcholka].listaLisci.SingleOrDefault(p => p.wsporzedne.Equals(l.wsporzedne)).stan = Stan.odwiedzony;
+                }
+            }
+
         }
 
         private void KopiujPoprzednieStanyPola(int indexWieszcholkaDoPolaczenia)

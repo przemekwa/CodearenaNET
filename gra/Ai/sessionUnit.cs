@@ -16,19 +16,24 @@ namespace Ai
     public class sessionUnit
     {
         const int POZIOM_LECZENIA = 80;
+
         private Wsporzedne Alter;
         private int wlasciciel;
         private bool czyJestemKoloSwojejBazy;
         private bool czyMogeSieLeczyc;
         private int IndexAktualnegoWieszcholka;
         private List<Wieszcholek> listaWieszcholkow;
-        private DirectionType poprzedniRuch;
+        
+        private DirectionType PoprzedniKierunek { get; set; }
+
         private List<DirectionType> historiaRuchow;
         private int IndexCofaniaRuchow;
         private DirectionType NamiaryNaDiament;
         private DirectionType NamiaryNaBaze;
         Unit unit { get; set; }
         private BackgroundType TypPolaNaKtorymStoje;
+
+
         public sessionUnit(Unit jednostka)
         {
             this.unit = jednostka;
@@ -47,6 +52,8 @@ namespace Ai
         public string WyliczRuch(Unit jednostka)
         {
             this.unit = jednostka;
+            
+
             DodajWieszchołek();
             GdzieMogeIsc();
             //
@@ -54,10 +61,10 @@ namespace Ai
             //
             if (CzyJestemKołoBazy())
             {
-                if (CzyJestDiament() && unit.action == ActionType.dragging)
-                {
-                    return Ai.CommandDictionary[OdłózDiament()];
-                }
+                //if (CzyJestDiament() && unit.action == ActionType.dragging)
+                //{
+                //    return Ai.CommandDictionary[OdłózDiament()];
+                //}
                 if (CzyMamSieLeczyc())
                 {
                     if (unit.action != ActionType.dragging)
@@ -69,10 +76,10 @@ namespace Ai
             //
             // Szukanie diamentu
             //
-            if (CzyJestDiament())
-            {
-                return Ai.CommandDictionary[ZnalazłemDiamend(NamiaryNaDiament)];
-            }
+            //if (CzyJestDiament())
+            //{
+            //    return Ai.CommandDictionary[ZnalazłemDiamend(NamiaryNaDiament)];
+            //}
             var komenda = AlgorytmEksploracji();
             return Ai.CommandDictionary[komenda];
         }
@@ -135,8 +142,11 @@ namespace Ai
                     if (liść.stan == Stan.nieodwiedzony && CzyMogeTamIsc(liść.Direction))
                     {
                         liść.stan = Stan.odwiedzony;
+
                         historiaRuchow.Add(liść.Direction);
+
                         ZapiszPoleNaKtorymBedeStal(liść.Direction);
+
                         return (CommandType)Enum.Parse(typeof(CommandType), liść.Direction.ToString());
                     }
                 }
@@ -150,7 +160,7 @@ namespace Ai
             var kierunek = CofnijSię(historiaRuchow.Last());
             if (CzyMogeTamIsc(kierunek)) // Niby idiotyczne ale może ktos tam się pojawić i jakiś obiekt albo player
             {
-                ZapiszPoleNaKtorymBedeStal(historiaRuchow.Last());
+                ZapiszPoleNaKtorymBedeStal(CofnijSię(historiaRuchow.Last()));
                 historiaRuchow.Remove(historiaRuchow.Last());
                 return (CommandType)Enum.Parse(typeof(CommandType), kierunek.ToString());
             }
@@ -161,6 +171,7 @@ namespace Ai
         private void ZapiszPoleNaKtorymBedeStal(DirectionType d)
         {
             TypPolaNaKtorymStoje = unit.seesList.Single(p => p.Direction == d).Background;
+            PoprzedniKierunek = d;
         }
         private Stan SprawdzCzyWogleMamSzanseWejscNaToPole(Sees pole)
         {
@@ -192,11 +203,19 @@ namespace Ai
         }
         private bool DodajWieszchołek()
         {
+            if (listaWieszcholkow.Count > 1)
+            {
+                listaWieszcholkow[IndexAktualnegoWieszcholka - 1].listaLisci.Single(p => p.Direction == CofnijSię(historiaRuchow.Last())).stan = Stan.odwiedzony;
+            }
+
+
+
             for (var i = 0; i < listaWieszcholkow.Count; i++)
             {
                 if ((listaWieszcholkow[i].x == unit.x) && (listaWieszcholkow[i].y == unit.y))
                 {
                     IndexAktualnegoWieszcholka = i;
+                    KopiujPoprzednieStanyPola();
                     return false;
                 }
             }
@@ -210,13 +229,31 @@ namespace Ai
             };
             listaWieszcholkow.Add(tempWieszch);
             IndexAktualnegoWieszcholka = listaWieszcholkow.IndexOf(tempWieszch);
+
+            KopiujPoprzednieStanyPola();
+
+
             return true;
+        }
+
+        private void KopiujPoprzednieStanyPola()
+        {
+            if (listaWieszcholkow.Count > 2)
+            {
+                var lewo = listaWieszcholkow[IndexAktualnegoWieszcholka].listaLisci.Single(p => p.DirectionNumber == (((int)CofnijSię(PoprzedniKierunek) + 1) == 6 ? 1 : ((int)CofnijSię(PoprzedniKierunek) + 1)));
+                var prawo = listaWieszcholkow[IndexAktualnegoWieszcholka].listaLisci.Single(p => p.DirectionNumber == (((int)CofnijSię(PoprzedniKierunek) - 1) == -1 ? 5 : ((int)CofnijSię(PoprzedniKierunek) - 1)));
+
+                lewo.stan = listaWieszcholkow[IndexAktualnegoWieszcholka - 1].listaLisci.Single(p => p.DirectionNumber == (((int)PoprzedniKierunek + 1) == 6 ? 1 : ((int)PoprzedniKierunek + 1))).stan;
+                prawo.stan = listaWieszcholkow[IndexAktualnegoWieszcholka - 1].listaLisci.Single(p => p.DirectionNumber == (((int)PoprzedniKierunek - 1) == -1 ? 5 : ((int)PoprzedniKierunek - 1))).stan;
+
+            }
         }
         private bool CzyMogeTamIsc(DirectionType kierunek)
         {
             var pole = unit.seesList.Single(p => p.Direction == kierunek);
             if (pole.Background == BackgroundType.black) return false;
             if (pole.Background == BackgroundType.stone) return false;
+            if (pole.Background == BackgroundType.orange) return false;
             if (pole.Object != null && pole.Object == ObjectType.diamond) return false;
             if (pole.Object != null && pole.Object == ObjectType.stone) return false;
             return pole.Building == null || pole.Building.buildingType != BuildingType.altar;
@@ -242,6 +279,7 @@ namespace Ai
                     if (CzyDiamentMozeSiePoruszyc(kierunek))
                     {
                         historiaRuchow.Remove(historiaRuchow.Last());
+                        ZapiszPoleNaKtorymBedeStal(CofnijSię(historiaRuchow.Last()));
                         return komenda;
                     }
                     return UstawDiamentWodpowiedniejPozycji(historiaRuchow.Last());

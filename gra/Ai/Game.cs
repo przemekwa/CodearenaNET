@@ -32,6 +32,12 @@ namespace Ai
     public class Sees
     {
         public DirectionType Direction { get; set; }
+        public int DirectionNumber {
+            get
+            {
+                return (int)this.Direction;
+            }
+        }
         public BackgroundType Background { get; set; }
         public Building Building { get; set; }
         public ObjectType? Object { get; set; }

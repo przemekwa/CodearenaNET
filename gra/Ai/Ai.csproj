@@ -41,6 +41,7 @@
   <ItemGroup>
     <Compile Include="Ai.cs" />
     <Compile Include="Game.cs" />
+    <Compile Include="Help.cs" />
     <Compile Include="Konwersje.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="sessionUnit.cs" />

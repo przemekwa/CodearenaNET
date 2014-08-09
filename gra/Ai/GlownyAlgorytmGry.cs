@@ -18,6 +18,8 @@ namespace Ai
  
         private int IndexAktualnegoWieszcholka;
         private List<Wieszcholek> listaWieszcholkow;
+        private bool jestemKołoBazy;
+        private bool transportDiamentu;
         
         private DirectionType PoprzedniKierunek { get; set; }
 
@@ -28,6 +30,8 @@ namespace Ai
         Unit unit { get; set; }
         private BackgroundType TypPolaNaKtorymStoje;
 
+        private List<Wsporzedne> drogaDoBazy { get; set; }
+
         private Graph graf { get; set; }
 
         public GlownyAlgorytmGry(Unit jednostka)
@@ -36,6 +40,7 @@ namespace Ai
             this.wlasciciel = jednostka.player;
             this.listaWieszcholkow = new List<Wieszcholek>();
             this.historiaRuchow = new List<DirectionType>();
+            this.drogaDoBazy = new List<Wsporzedne>();
             graf = new Graph();
         }
 
@@ -52,8 +57,6 @@ namespace Ai
             
             if (CzyJestemKołoBazy())
             {
-                
-
                 if (CzyJestDiament() && unit.action == ActionType.dragging)
                 {
                     return Ai.CommandDictionary[OdłózDiament()];
@@ -67,13 +70,28 @@ namespace Ai
                 }
             }
 
+            var test = IdzDoBazy();
+            if (test  != CommandType.error)
+            {
+                return Ai.CommandDictionary[test];
+            }
+
             //
             // Szukanie diamentu
             //
 
             if (CzyJestDiament())
             {
-                return Ai.CommandDictionary[ZnalazłemDiamend(NamiaryNaDiament)];
+                if (drogaDoBazy.Count == 0)
+                {
+                    WyliczDrogę(unit.wsporzedne);
+                }
+
+                IdzDoBazy();
+
+
+
+                //return Ai.CommandDictionary[ZnalazłemDiamend(NamiaryNaDiament)];
             }
 
             //
@@ -83,6 +101,22 @@ namespace Ai
             var komenda = AlgorytmEksploracji();
 
             return Ai.CommandDictionary[komenda];
+        }
+
+        private CommandType IdzDoBazy()
+        {
+            if (drogaDoBazy.Count > 0)
+            {
+                var test = unit.seesList.SingleOrDefault(p => p.wsporzedne.Equals(drogaDoBazy.Last()));
+
+                if (test != null)
+                {
+                    drogaDoBazy.Remove(drogaDoBazy.Last());
+                    return (CommandType)Enum.Parse(typeof(CommandType), (CofnijSię(CofnijSię(test.Direction)).ToString()));
+                };
+            }
+
+            return CommandType.error;
         }
         private CommandType OdłózDiament()
         {
@@ -94,22 +128,27 @@ namespace Ai
         }
         private bool CzyJestDiament()
         {
-            //foreach (var pole in unit.seesList)
-            //{
-            //    if (pole.Object != null && pole.Object == ObjectType.diamond)
-            //    {
-            //        NamiaryNaDiament = pole.Direction;
-            //        return true;
-            //    }
-            //}
+            foreach (var pole in unit.seesList)
+            {
+                if (pole.Object != null && pole.Object == ObjectType.diamond)
+                {
+                    NamiaryNaDiament = pole.Direction;
+                    return true;
+                }
+            }
             return false;
         }
 
-        private void WyliczDrogę(Wieszcholek w)
+        private void WyliczDrogę(Wsporzedne w)
         {
             if (graf.CalculateShortestPath())
             {
-                var r = graf.RetrieveShortestPath(new Vector2D(w.wsporzedne.x,w.wsporzedne.y,false));
+                var r = graf.RetrieveShortestPath(graf.AllNodes.Last());
+
+                foreach(var ws in r)
+                {
+                    drogaDoBazy.Add(new Wsporzedne { x = ws.XCoord, y = ws.YCoord });
+                }
             }
           }
         private CommandType AlgorytmEksploracji()
@@ -231,7 +270,15 @@ namespace Ai
             // Dodaje wieszchołek do algorytmu szukania ścieżki.
             //
 
-           graf.AddVertex(new Vector2D(tempWieszch.wsporzedne.x, tempWieszch.wsporzedne.y, false));
+
+            var tempVertex = new Vector2D(tempWieszch.wsporzedne.x, tempWieszch.wsporzedne.y, false);
+
+            graf.AddVertex(tempVertex);
+
+            if (jestemKołoBazy)
+            {
+                graf.SourceVertex = tempVertex;
+            }
 
             //
             // I łącze z pozostałymi
@@ -259,6 +306,11 @@ namespace Ai
                 }
             }
 
+            if (index > 0)
+            {
+                graf.AddEdge(new Edge(graf.AllNodes[index-1],graf.AllNodes[index],0));
+            }
+
         }
         private bool CzyMogeTamIsc(DirectionType kierunek)
         {
@@ -273,7 +325,7 @@ namespace Ai
         private CommandType ZnalazłemDiamend(DirectionType dt)
         {
             //[TODO] ustaw odpowiednia diament
-            if (unit.action != ActionType.dragging)
+            if (unit.action == ActionType.dragging)
             {
                 if (unit.orientation == dt)
                 {
@@ -283,6 +335,7 @@ namespace Ai
             }
             else
             {
+
                 //[ToDo] Numery wieszchiołów.
                 var kierunek = CofnijSię(historiaRuchow.Last());
                 var komenda = (CommandType)Enum.Parse(typeof(CommandType), CofnijSię(historiaRuchow.Last()).ToString());
@@ -357,14 +410,14 @@ namespace Ai
             if (poleZBaza != null)
             {
                 Alter = this.unit.wsporzedne;
-                this.graf.SourceVertex = new Vector2D(Alter.x, Alter.y, false);
                 NamiaryNaBaze = poleZBaza.Direction;
+                jestemKołoBazy = true;
             
                
                 return true;
             }
-        
-      
+
+            jestemKołoBazy = false;
             return false;
         }
         private bool CzyMamSieLeczyc()

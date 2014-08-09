@@ -33,7 +33,6 @@ namespace Ai
         Unit unit { get; set; }
         private BackgroundType TypPolaNaKtorymStoje;
 
-
         public sessionUnit(Unit jednostka)
         {
             this.unit = jednostka;
@@ -48,7 +47,7 @@ namespace Ai
 
         }
         private readonly List<Sees> listaPolGdzieMogeIsc = new List<Sees>();
-        private Wieszcholek skadPrzyzedłem;
+    
         public string WyliczRuch(Unit jednostka)
         {
             this.unit = jednostka;
@@ -135,8 +134,6 @@ namespace Ai
 
                         historiaRuchow.Add(liść.Direction);
 
-                        ZapiszPoleNaKtorymBedeStal(liść.Direction);
-
                         return (CommandType)Enum.Parse(typeof(CommandType), liść.Direction.ToString());
                     }
                 }
@@ -150,7 +147,6 @@ namespace Ai
             var kierunek = CofnijSię(historiaRuchow.Last());
             if (CzyMogeTamIsc(kierunek)) // Niby idiotyczne ale może ktos tam się pojawić i jakiś obiekt albo player
             {
-                ZapiszPoleNaKtorymBedeStal(CofnijSię(historiaRuchow.Last()));
                 historiaRuchow.Remove(historiaRuchow.Last());
                 return (CommandType)Enum.Parse(typeof(CommandType), kierunek.ToString());
             }
@@ -158,11 +154,7 @@ namespace Ai
             // [TODO] Co zrobić jak mnie ktoś zablokuje.
             return CommandType.rotateRight;
         }
-        private void ZapiszPoleNaKtorymBedeStal(DirectionType d)
-        {
-            TypPolaNaKtorymStoje = unit.seesList.Single(p => p.Direction == d).Background;
-            PoprzedniKierunek = d;
-        }
+      
         private Stan SprawdzCzyWogleMamSzanseWejscNaToPole(Sees pole)
         {
             if (pole.Background == BackgroundType.black) return Stan.odwiedzony;
@@ -225,16 +217,18 @@ namespace Ai
             // I łącze z pozostałymi
             //
 
-
             listaWieszcholkow.Add(tempWieszch);
             IndexAktualnegoWieszcholka = listaWieszcholkow.IndexOf(tempWieszch);
             PołączWieszchołki(IndexAktualnegoWieszcholka);
 
             return true;
         }
-
         private void PołączWieszchołki(int index)
         {
+            //
+            // Łącze wieszchołki porównując ich pozycje x i y. Jeśli się zgadzają to kopiuje status wieszchołka.
+            //
+
             foreach (var l in listaWieszcholkow[index].listaLisci)
             {
                 var temp = listaWieszcholkow.SingleOrDefault(p => p.wsporzedne.Equals(l.wsporzedne));
@@ -245,19 +239,6 @@ namespace Ai
                 }
             }
 
-        }
-
-        private void KopiujPoprzednieStanyPola(int indexWieszcholkaDoPolaczenia)
-        {
-            if (listaWieszcholkow.Count > 2)
-            {
-                var lewo = listaWieszcholkow[IndexAktualnegoWieszcholka].listaLisci.Single(p => p.DirectionNumber == (((int)CofnijSię(PoprzedniKierunek) + 1) == 6 ? 1 : ((int)CofnijSię(PoprzedniKierunek) + 1)));
-                var prawo = listaWieszcholkow[IndexAktualnegoWieszcholka].listaLisci.Single(p => p.DirectionNumber == (((int)CofnijSię(PoprzedniKierunek) - 1) == -1 ? 5 : ((int)CofnijSię(PoprzedniKierunek) - 1)));
-
-                lewo.stan = listaWieszcholkow[indexWieszcholkaDoPolaczenia].listaLisci.Single(p => p.DirectionNumber == (((int)PoprzedniKierunek + 1) == 6 ? 1 : ((int)PoprzedniKierunek + 1))).stan;
-                prawo.stan = listaWieszcholkow[indexWieszcholkaDoPolaczenia].listaLisci.Single(p => p.DirectionNumber == (((int)PoprzedniKierunek - 1) == -1 ? 5 : ((int)PoprzedniKierunek - 1))).stan;
-
-            }
         }
         private bool CzyMogeTamIsc(DirectionType kierunek)
         {
@@ -290,7 +271,6 @@ namespace Ai
                     if (CzyDiamentMozeSiePoruszyc(kierunek))
                     {
                         historiaRuchow.Remove(historiaRuchow.Last());
-                        ZapiszPoleNaKtorymBedeStal(CofnijSię(historiaRuchow.Last()));
                         return komenda;
                     }
                     return UstawDiamentWodpowiedniejPozycji(historiaRuchow.Last());

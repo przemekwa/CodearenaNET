@@ -19,15 +19,15 @@ namespace Ai
 
         private Wsporzedne Alter;
         private int wlasciciel;
-        private bool czyJestemKoloSwojejBazy;
-        private bool czyMogeSieLeczyc;
+  
+ 
         private int IndexAktualnegoWieszcholka;
         private List<Wieszcholek> listaWieszcholkow;
         
         private DirectionType PoprzedniKierunek { get; set; }
 
         private List<DirectionType> historiaRuchow;
-        private int IndexCofaniaRuchow;
+      
         private DirectionType NamiaryNaDiament;
         private DirectionType NamiaryNaBaze;
         Unit unit { get; set; }
@@ -288,7 +288,7 @@ namespace Ai
             var pole = unit.seesList.Single(p => p.Direction == kierunek);
             if (pole.Background == BackgroundType.black) return false;
             if (pole.Background == BackgroundType.stone) return false;
-            if (pole.Background == BackgroundType.orange) return false;
+        
             if (pole.Object != null && pole.Object == ObjectType.diamond) return false;
             if (pole.Object != null && pole.Object == ObjectType.stone) return false;
             return pole.Building == null || pole.Building.buildingType != BuildingType.altar;
@@ -381,14 +381,14 @@ namespace Ai
             if (poleZBaza != null)
             {
                 Alter = this.unit.wsporzedne;
-                czyJestemKoloSwojejBazy = true;
+             
                 NamiaryNaBaze = poleZBaza.Direction;
-                if (unit.orientation == poleZBaza.Direction)
-                    czyMogeSieLeczyc = true;
+            
+               
                 return true;
             }
-            czyMogeSieLeczyc = false;
-            czyJestemKoloSwojejBazy = false;
+        
+      
             return false;
         }
         private bool CzyMamSieLeczyc()

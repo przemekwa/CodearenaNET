@@ -26,7 +26,7 @@ namespace Ai
         private List<DirectionType> historiaRuchow;
       
         private DirectionType NamiaryNaDiament;
-        private DirectionType NamiaryNaBaze;
+        private Sees Baza;
         Unit unit { get; set; }
         private BackgroundType TypPolaNaKtorymStoje;
 
@@ -84,12 +84,10 @@ namespace Ai
             {
                 if (drogaDoBazy.Count == 0)
                 {
-                    WyliczDrogę(unit.wsporzedne);
+                    WyliczDrogę(IndexAktualnegoWieszcholka-1);
                 }
 
-                IdzDoBazy();
-
-
+                retuIdzDoBazy();
 
                 //return Ai.CommandDictionary[ZnalazłemDiamend(NamiaryNaDiament)];
             }
@@ -112,7 +110,7 @@ namespace Ai
                 if (test != null)
                 {
                     drogaDoBazy.Remove(drogaDoBazy.Last());
-                    return (CommandType)Enum.Parse(typeof(CommandType), (CofnijSię(CofnijSię(test.Direction)).ToString()));
+                    return (CommandType)Enum.Parse(typeof(CommandType), (CofnijSię(test.Direction)).ToString());
                 };
             }
 
@@ -120,11 +118,11 @@ namespace Ai
         }
         private CommandType OdłózDiament()
         {
-            if (unit.orientation == NamiaryNaBaze)
+            if (unit.orientation == Baza.Direction)
             {
                 return CommandType.drop;
             }
-            return ZmienKierunekPatrzenia(NamiaryNaBaze);
+            return ZmienKierunekPatrzenia(Baza.Direction);
         }
         private bool CzyJestDiament()
         {
@@ -139,18 +137,18 @@ namespace Ai
             return false;
         }
 
-        private void WyliczDrogę(Wsporzedne w)
+        private void WyliczDrogę(int index)
         {
             if (graf.CalculateShortestPath())
             {
-                var r = graf.RetrieveShortestPath(graf.AllNodes.Last());
+                var r = graf.RetrieveShortestPath(graf.AllNodes[index]);
 
                 foreach(var ws in r)
                 {
                     drogaDoBazy.Add(new Wsporzedne { x = ws.XCoord, y = ws.YCoord });
                 }
             }
-          }
+        }
         private CommandType AlgorytmEksploracji()
         {
             //
@@ -270,15 +268,9 @@ namespace Ai
             // Dodaje wieszchołek do algorytmu szukania ścieżki.
             //
 
-
-            var tempVertex = new Vector2D(tempWieszch.wsporzedne.x, tempWieszch.wsporzedne.y, false);
+           var tempVertex = new Vector2D(tempWieszch.wsporzedne.x, tempWieszch.wsporzedne.y, false);
 
             graf.AddVertex(tempVertex);
-
-            if (jestemKołoBazy)
-            {
-                graf.SourceVertex = tempVertex;
-            }
 
             //
             // I łącze z pozostałymi
@@ -410,10 +402,17 @@ namespace Ai
             if (poleZBaza != null)
             {
                 Alter = this.unit.wsporzedne;
-                NamiaryNaBaze = poleZBaza.Direction;
+                Baza = poleZBaza;
                 jestemKołoBazy = true;
-            
-               
+
+                var bazaVertex = graf.AllNodes.Where(p => p.XCoord == unit.wsporzedne.x
+                    ).SingleOrDefault(p => p.YCoord == unit.wsporzedne.y);
+
+                if (bazaVertex != null)
+                {
+                    graf.SourceVertex = bazaVertex;
+                }
+
                 return true;
             }
 

@@ -84,7 +84,7 @@ namespace gra
 
                     codeArenaTcp.WyśliKomunikat("<unit id='" + graXMl.listaJednostek[0].id + "'>" + silnikSztucznejInteligencji.DajMiTenRuch(graXMl) + "</unit>");
 
-                  //  Thread.Sleep(1000);
+ Thread.Sleep(1000);
                 };
 
                 Console.Read();

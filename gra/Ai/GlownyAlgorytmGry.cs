@@ -4,152 +4,176 @@ using System.Security.Authentication.ExtendedProtection.Configuration;
 
 namespace Ai
 {
-       using System;
+     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
-    
-    public class GlownyAlgorytmGry
+
+    public class sessionUnit
     {
-        const int POZIOM_LECZENIA = 80;
+        #region private_Property
 
-        private Wsporzedne Alter;
-        private int wlasciciel;
- 
-        private int IndexAktualnegoWieszcholka;
-        private List<Wieszcholek> listaWieszcholkow;
-        private bool jestemKołoBazy;
-        private bool transportDiamentu;
-        
-        private DirectionType PoprzedniKierunek { get; set; }
+        private const int POZIOM_LECZENIA = 80;
 
-        private List<DirectionType> historiaRuchow;
-      
-        private DirectionType NamiaryNaDiament;
-        private Sees Baza;
-        Unit unit { get; set; }
-        private BackgroundType TypPolaNaKtorymStoje;
+        private List<Coordinate> CoordinateList { get; set; }
 
-        private List<Wsporzedne> drogaDoBazy { get; set; }
+        private List<HexField> HexMap { get; set; }
 
-        private Graph graf { get; set; }
+        private int Player { get; set; }
 
-        public GlownyAlgorytmGry(Unit jednostka)
+        private int CurrentHexIndex;
+
+        private List<DirectionType> DirectionHistoryList;
+
+        private Sees Baza { get; set; }
+
+        private Sees Diament { get; set; }
+
+        private Unit unit { get; set; }
+
+        private Graph DijkstrasAlgorithm { get; set; }
+
+        #endregion
+
+        public sessionUnit(Unit currentUnit)
         {
-            this.unit = jednostka;
-            this.wlasciciel = jednostka.player;
-            this.listaWieszcholkow = new List<Wieszcholek>();
-            this.historiaRuchow = new List<DirectionType>();
-            this.drogaDoBazy = new List<Wsporzedne>();
-            graf = new Graph();
+            this.unit = currentUnit;
+            this.Player = currentUnit.player;
+            this.HexMap = new List<HexField>();
+            this.DirectionHistoryList = new List<DirectionType>();
+            this.CoordinateList = new List<Coordinate>();
+            this.DijkstrasAlgorithm = new Graph();
         }
 
-        private readonly List<Sees> listaPolGdzieMogeIsc = new List<Sees>();
-    
-        public string WyliczRuch(Unit jednostka)
+        public string GetMove(Unit currentUnit)
         {
-            this.unit = jednostka;
-            DodajWieszchołek();
-       
+            this.unit = currentUnit;
+
+            AddHexField();
+
             //
-            // Leczenie.
+            // Leczenie i odstawianie diamentu. + Pewnie też tu będzie odstawianie kamienia.
             //
-            
-            if (CzyJestemKołoBazy())
+
+            if (SetUpBaza())
             {
-                if (CzyJestDiament() && unit.action == ActionType.dragging)
+                if (SetUpDiament() && unit.action == ActionType.dragging)
                 {
                     return Ai.CommandDictionary[OdłózDiament()];
-                }
-                if (CzyMamSieLeczyc())
-                {
-                    if (unit.action != ActionType.dragging)
-                    {
-                        return Ai.CommandDictionary[LeczSie()];
-                    }
-                }
+                }                                                                   //[TODO] A jak się nie będe mógł uleczyć? Będzie cały czas się leczył. BŁĄD!!!
+                //if (CheckLiveLevel())
+                //{
+                //    if (unit.action != ActionType.dragging)
+                //    {
+                //        return Ai.CommandDictionary[Heal()];
+                //    }
+                //}
             }
 
-            var test = IdzDoBazy();
-            if (test  != CommandType.error)
-            {
-                return Ai.CommandDictionary[test];
-            }
+            //
+            // Czy mam ustawiony cel podróży.
+            //
+
+            //if (CoordinateList.Count > 0 && unit.action != ActionType.dragging)
+            //{
+            //    return Ai.CommandDictionary[(CommandType) Enum.Parse(typeof (CommandType), GetDirectionFormCoordinateList().ToString())];
+            //}
 
             //
             // Szukanie diamentu
             //
 
-            if (CzyJestDiament())
+            if (SetUpDiament())
             {
-                if (drogaDoBazy.Count == 0)
+                if (CoordinateList.Count == 0)
                 {
-                    WyliczDrogę(IndexAktualnegoWieszcholka-1);
+                    GetCoordinatesFrom(CurrentHexIndex - 1);
                 }
 
-                retuIdzDoBazy();
+                return Ai.CommandDictionary[(CommandType)Enum.Parse(typeof(CommandType), GetDirectionFormCoordinateList().ToString())];
 
-                //return Ai.CommandDictionary[ZnalazłemDiamend(NamiaryNaDiament)];
+              //  return Ai.CommandDictionary[ZnalazłemDiamend(NamiaryNaDiament)];
             }
 
             //
-            // Chodzenie
+            // Jeśli nie ma diamentu, nie musze się leczyć wtedy zwiedzam.
             //
 
-            var komenda = AlgorytmEksploracji();
+            var komenda = ExploreAlgorithm();
 
             return Ai.CommandDictionary[komenda];
         }
 
-        private CommandType IdzDoBazy()
+        private DirectionType GetDirectionFormCoordinateList()
         {
-            if (drogaDoBazy.Count > 0)
-            {
-                var test = unit.seesList.SingleOrDefault(p => p.wsporzedne.Equals(drogaDoBazy.Last()));
+            var hexToGo = unit.seesList.SingleOrDefault(p => p.wsporzedne.Equals(CoordinateList.Last()));
 
-                if (test != null)
-                {
-                    drogaDoBazy.Remove(drogaDoBazy.Last());
-                    return (CommandType)Enum.Parse(typeof(CommandType), (CofnijSię(test.Direction)).ToString());
-                };
-            }
+            if (hexToGo == null) return DirectionHistoryList.Last();
 
-            return CommandType.error;
+            CoordinateList.Remove(CoordinateList.Last());
+
+            return hexToGo.Direction;
         }
+
+        private DirectionType ReadDirectionFromCoordinateList()
+        {
+            var hexToGo = unit.seesList.SingleOrDefault(p => p.wsporzedne.Equals(CoordinateList.Last()));
+
+            return hexToGo == null ? DirectionHistoryList.Last() : hexToGo.Direction;
+        }
+
         private CommandType OdłózDiament()
         {
-            if (unit.orientation == Baza.Direction)
-            {
-                return CommandType.drop;
-            }
-            return ZmienKierunekPatrzenia(Baza.Direction);
-        }
-        private bool CzyJestDiament()
-        {
-            foreach (var pole in unit.seesList)
-            {
-                if (pole.Object != null && pole.Object == ObjectType.diamond)
-                {
-                    NamiaryNaDiament = pole.Direction;
-                    return true;
-                }
-            }
-            return false;
+            return unit.orientation == Baza.Direction ? CommandType.drop : ZmienKierunekPatrzenia(Baza.Direction);
         }
 
-        private void WyliczDrogę(int index)
+        private bool SetUpDiament()
         {
-            if (graf.CalculateShortestPath())
-            {
-                var r = graf.RetrieveShortestPath(graf.AllNodes[index]);
+            Diament = CheckObjectExisting(ObjectType.diamond);
 
-                foreach(var ws in r)
-                {
-                    drogaDoBazy.Add(new Wsporzedne { x = ws.XCoord, y = ws.YCoord });
-                }
+            return Diament != null;
+        }
+
+        private bool SetUpBaza()
+        {
+            var poleZBaza =
+            unit.seesList.SingleOrDefault(
+            pole =>
+            pole.Building != null && pole.Building.buildingType == BuildingType.altar &&
+            pole.Building.player == Player);
+
+            if (poleZBaza == null) return false;
+
+            Baza = poleZBaza;
+
+            var bazaVertex = DijkstrasAlgorithm.AllNodes.Where(p => p.XCoord == unit.wsporzedne.X
+                ).SingleOrDefault(p => p.YCoord == unit.wsporzedne.Y);
+
+            if (bazaVertex == null) return false;
+            
+            DijkstrasAlgorithm.SourceVertex = bazaVertex;
+
+            return true;
+        }
+
+        private Sees CheckObjectExisting(ObjectType objectType)
+        {
+            return unit.seesList.FirstOrDefault(see => see.Object != null && see.Object == objectType);
+        }
+
+        private void GetCoordinatesFrom(int index)
+        {
+            if (!DijkstrasAlgorithm.CalculateShortestPath()) return;
+
+            var shortestPathCoordinates = DijkstrasAlgorithm.RetrieveShortestPath(DijkstrasAlgorithm.AllNodes[index]);
+
+            foreach (var coordinate in shortestPathCoordinates)
+            {
+                CoordinateList.Add(new Coordinate { X = coordinate.XCoord, Y = coordinate.YCoord });
             }
         }
-        private CommandType AlgorytmEksploracji()
+
+        private CommandType ExploreAlgorithm()
         {
             //
             // Zapisz wieszchołek, na którym jestem. [TODO] Co zrobić z tymi na których jest kamień, diamend i mogą się zrobić wolne w trakcje gry.
@@ -158,9 +182,9 @@ namespace Ai
             //
             // Weź pierwszy nie odwiedzony liść.
             //
-            if (listaWieszcholkow[IndexAktualnegoWieszcholka].Stan == Stan.nieodwiedzony)
+            if (HexMap[CurrentHexIndex].Stan == Stan.nieodwiedzony)
             {
-                foreach (var liść in listaWieszcholkow[IndexAktualnegoWieszcholka].listaLisci)
+                foreach (var liść in HexMap[CurrentHexIndex].listaLisci)
                 {
                     //
                     // Jeśli nie mogę wejść na pole to uzaje, że nie da się tam wejść i ustawiam, że to pole odwiedziłem.
@@ -178,24 +202,26 @@ namespace Ai
                     {
                         liść.stan = Stan.odwiedzony;
 
-                        historiaRuchow.Add(liść.Direction);
+                        DirectionHistoryList.Add(liść.Direction);
 
                         return (CommandType)Enum.Parse(typeof(CommandType), liść.Direction.ToString());
                     }
                 }
                 if (lisceOdwiedzone)
                 {
-                    listaWieszcholkow[IndexAktualnegoWieszcholka].Stan = Stan.odwiedzony;
+                    HexMap[CurrentHexIndex].Stan = Stan.odwiedzony;
                 }
             }
-            
+
             //Nie było nic do odwiedzenia.
             //Idz do poprzedniego wieszchołka
 
-            var kierunek = CofnijSię(historiaRuchow.Last());
+
+            var kierunek = CofnijSię(DirectionHistoryList.Last());
+
             if (CzyMogeTamIsc(kierunek)) // Niby idiotyczne ale może ktos tam się pojawić i jakiś obiekt albo player
             {
-                historiaRuchow.Remove(historiaRuchow.Last());
+                DirectionHistoryList.Remove(DirectionHistoryList.Last());
                 return (CommandType)Enum.Parse(typeof(CommandType), kierunek.ToString());
             }
 
@@ -205,7 +231,7 @@ namespace Ai
 
             return CommandType.rotateRight;
         }
-      
+
         private Stan SprawdzCzyWogleMamSzanseWejscNaToPole(Sees pole)
         {
             if (pole.Background == BackgroundType.black) return Stan.odwiedzony;
@@ -214,6 +240,7 @@ namespace Ai
             if (pole.Building != null && pole.Building.buildingType == BuildingType.altar) return Stan.odwiedzony;
             return Stan.nieodwiedzony;
         }
+
         private DirectionType CofnijSię(DirectionType d)
         {
             switch (d)
@@ -234,132 +261,135 @@ namespace Ai
                     return d;
             }
         }
-        private bool DodajWieszchołek()
-        {
-           //
-           // Sprawdzam czy wieszchołek już istnieje.
-           //
 
-           var nowyWieszchołek = listaWieszcholkow.SingleOrDefault(w=>w.wsporzedne.Equals(unit.wsporzedne));
+        private bool AddHexField()
+        {
+            //
+            // Sprawdzam czy wieszchołek już istnieje.
+            //
+
+            var existingHex = HexMap.SingleOrDefault(w => w.wsporzedne.Equals(unit.wsporzedne));
 
             //
             // Jeśli tak, to łącze wieszchołki razem.
             //
 
-           if (nowyWieszchołek != null)
-           {
-               IndexAktualnegoWieszcholka = listaWieszcholkow.IndexOf(nowyWieszchołek);
-               PołączWieszchołki(IndexAktualnegoWieszcholka);
+            if (existingHex != null)
+            {
+                CurrentHexIndex = HexMap.IndexOf(existingHex);
+                PołączWieszchołki(CurrentHexIndex);
 
-               return false;
-           }
+                return false;
+            }
 
             //
             // Jeśli nie, to dodaje nowy wieszchołek.
             //
-           
-           var tempWieszch = new Wieszcholek(this.unit.wsporzedne, unit.seesList)
-           {
-               Stan = Stan.nieodwiedzony,
-               Priorytet = 0
-           };
+
+            var tempWieszch = new HexField(this.unit.wsporzedne, unit.seesList)
+            {
+                Stan = Stan.nieodwiedzony,
+                Priorytet = 0
+            };
 
             //
             // Dodaje wieszchołek do algorytmu szukania ścieżki.
             //
 
-           var tempVertex = new Vector2D(tempWieszch.wsporzedne.x, tempWieszch.wsporzedne.y, false);
+            var tempVertex = new Vector2D(tempWieszch.wsporzedne.X, tempWieszch.wsporzedne.Y, false);
 
-            graf.AddVertex(tempVertex);
+            DijkstrasAlgorithm.AddVertex(tempVertex);
 
             //
             // I łącze z pozostałymi
             //
 
-            listaWieszcholkow.Add(tempWieszch);
-            IndexAktualnegoWieszcholka = listaWieszcholkow.IndexOf(tempWieszch);
-            PołączWieszchołki(IndexAktualnegoWieszcholka);
+            HexMap.Add(tempWieszch);
+            CurrentHexIndex = HexMap.IndexOf(tempWieszch);
+            PołączWieszchołki(CurrentHexIndex);
 
             return true;
         }
+
         private void PołączWieszchołki(int index)
         {
             //
             // Łącze wieszchołki porównując ich pozycje x i y. Jeśli się zgadzają to kopiuje status wieszchołka.
             //
 
-            foreach (var l in listaWieszcholkow[index].listaLisci)
+            foreach (var l in HexMap[index].listaLisci)
             {
-                var temp = listaWieszcholkow.SingleOrDefault(p => p.wsporzedne.Equals(l.wsporzedne));
+                var temp = HexMap.SingleOrDefault(p => p.wsporzedne.Equals(l.wsporzedne));
 
                 if (temp != null)
                 {
-                    listaWieszcholkow[IndexAktualnegoWieszcholka].listaLisci.SingleOrDefault(p => p.wsporzedne.Equals(l.wsporzedne)).stan = Stan.odwiedzony;
+                    HexMap[CurrentHexIndex].listaLisci.SingleOrDefault(p => p.wsporzedne.Equals(l.wsporzedne)).stan = Stan.odwiedzony;
                 }
             }
 
             if (index > 0)
             {
-                graf.AddEdge(new Edge(graf.AllNodes[index-1],graf.AllNodes[index],0));
+                DijkstrasAlgorithm.AddEdge(new Edge(DijkstrasAlgorithm.AllNodes[index - 1], DijkstrasAlgorithm.AllNodes[index], 0));
             }
 
         }
+
         private bool CzyMogeTamIsc(DirectionType kierunek)
         {
             var pole = unit.seesList.Single(p => p.Direction == kierunek);
             if (pole.Background == BackgroundType.black) return false;
             if (pole.Background == BackgroundType.stone) return false;
-        
+
             if (pole.Object != null && pole.Object == ObjectType.diamond) return false;
             if (pole.Object != null && pole.Object == ObjectType.stone) return false;
             return pole.Building == null || pole.Building.buildingType != BuildingType.altar;
         }
+
         private CommandType ZnalazłemDiamend(DirectionType dt)
         {
-            //[TODO] ustaw odpowiednia diament
-            if (unit.action == ActionType.dragging)
-            {
-                if (unit.orientation == dt)
-                {
-                    return CommandType.drag;
-                }
-                return ZmienKierunekPatrzenia(dt);
-            }
-            else
-            {
+            //[TODO] ustaw odpowiednio diament
 
-                //[ToDo] Numery wieszchiołów.
-                var kierunek = CofnijSię(historiaRuchow.Last());
-                var komenda = (CommandType)Enum.Parse(typeof(CommandType), CofnijSię(historiaRuchow.Last()).ToString());
-                if (CzyDianemStoiWOdpowiedniejPozycji(kierunek))
+            if (unit.action != ActionType.dragging)
+            {
+                return unit.orientation == dt ? CommandType.drag : ZmienKierunekPatrzenia(dt);
+            }
+
+            //[ToDo] Numery wieszchiołów.
+
+            var kierunek = ReadDirectionFromCoordinateList();
+            
+            if (CzyDianemStoiWOdpowiedniejPozycji(kierunek))
                 {
                     if (CzyDiamentMozeSiePoruszyc(kierunek))
                     {
-                        historiaRuchow.Remove(historiaRuchow.Last());
-                        return komenda;
+                        return (CommandType)Enum.Parse(typeof(CommandType), GetDirectionFormCoordinateList().ToString());
                     }
-                    return UstawDiamentWodpowiedniejPozycji(historiaRuchow.Last());
+                    return UstawDiamentWodpowiedniejPozycji(DirectionHistoryList.Last());
                 }
                 return UstawDiamentTakAbyByloMoznaGoporuszyc(kierunek);
-            }
+            
         }
+
         private bool CzyDiamentMozeSiePoruszyc(DirectionType d)
         {
-            var prawo = listaWieszcholkow[IndexAktualnegoWieszcholka].listaLisci[((int)d + 1) == 6 ? 1 : (int)d + 1].Background;
-            var lewo = listaWieszcholkow[IndexAktualnegoWieszcholka].listaLisci[((int)d - 1) == -1 ? 5 : (int)d - 1].Background;
-            var przod = TypPolaNaKtorymStoje;
-            if ((((int)d + 3) >= 6 ? (int)d - 3 : (int)d + 3) == (int)NamiaryNaDiament)
+            var prawo = HexMap[CurrentHexIndex].listaLisci[((int)d + 1) == 6 ? 1 : (int)d + 1].Background;
+            var lewo = HexMap[CurrentHexIndex].listaLisci[((int)d - 1) == -1 ? 5 : (int)d - 1].Background;
+            var przod =
+                HexMap[CurrentHexIndex - 1].listaLisci.SingleOrDefault(
+                    l => l.Direction == DirectionHistoryList.Last()).Background;
+
+            if ((((int)d + 3) >= 6 ? (int)d - 3 : (int)d + 3) == (int)Diament.Direction)
             {
                 if (przod == BackgroundType.orange) return false;
                 return true;
             }
-            if ((((int)d + 2) >= 6 ? (int)d - 4 : (int)d + 2) == (int)NamiaryNaDiament)
+            if ((((int)d + 2) >= 6 ? (int)d - 4 : (int)d + 2) == (int)Diament.Direction)
             {
                 if (prawo == BackgroundType.orange) return false;
                 if (prawo == BackgroundType.stone) return false;
                 return true;
             }
-            if ((((int)d - 2) <= -1 ? (int)d + 4 : (int)d - 2) == (int)NamiaryNaDiament)
+            if ((((int)d - 2) <= -1 ? (int)d + 4 : (int)d - 2) == (int)Diament.Direction)
             {
                 if (lewo == BackgroundType.orange) return false;
                 if (prawo == BackgroundType.stone) return false;
@@ -367,77 +397,57 @@ namespace Ai
             }
             return false;
         }
+
         private bool CzyDianemStoiWOdpowiedniejPozycji(DirectionType d)
         {
             var lewo = ((int)d + 1) == 6 ? 1 : (int)d + 1;
             var prawo = ((int)d - 1) == -1 ? 5 : (int)d - 1;
             var przod = (int)d;
-            return lewo != (int)NamiaryNaDiament && prawo != (int)NamiaryNaDiament && przod != (int)NamiaryNaDiament;
+            return lewo != (int)Diament.Direction && prawo != (int)Diament.Direction && przod != (int)Diament.Direction;
         }
+
         private CommandType UstawDiamentTakAbyByloMoznaGoporuszyc(DirectionType d)
         {
             return CommandType.rotateRight;
         }
+
         private CommandType UstawDiamentWodpowiedniejPozycji(DirectionType d)
         {
-            var prawo = listaWieszcholkow[IndexAktualnegoWieszcholka].listaLisci[((int)NamiaryNaDiament + 1) == 6 ? 1 : (int)d + 1].Background;
-            var lewo = listaWieszcholkow[IndexAktualnegoWieszcholka].listaLisci[((int)NamiaryNaDiament - 1) == -1 ? 5 : (int)d - 1].Background;
+            var prawo = HexMap[CurrentHexIndex].listaLisci[((int)Diament.Direction + 1) == 6 ? 1 : (int)d + 1].Background;
+            var lewo = HexMap[CurrentHexIndex].listaLisci[((int)Diament.Direction - 1) == -1 ? 5 : (int)d - 1].Background;
             for (int i = 1; i < 3; i++)
             {
                 if (
-                listaWieszcholkow[IndexAktualnegoWieszcholka].listaLisci[
-                ((int)NamiaryNaDiament + i) == 6 ? 1 : (int)d + i].Background == BackgroundType.orange)
+                HexMap[CurrentHexIndex].listaLisci[
+                ((int)Diament.Direction + i) == 6 ? 1 : (int)d + i].Background == BackgroundType.orange)
                 {
                 }
             }
             return CommandType.rotateRight;
         }
-        private bool CzyJestemKołoBazy()
-        {
-            var poleZBaza =
-            unit.seesList.SingleOrDefault(
-            pole =>
-            pole.Building != null && pole.Building.buildingType == BuildingType.altar &&
-            pole.Building.player == wlasciciel);
-            if (poleZBaza != null)
-            {
-                Alter = this.unit.wsporzedne;
-                Baza = poleZBaza;
-                jestemKołoBazy = true;
 
-                var bazaVertex = graf.AllNodes.Where(p => p.XCoord == unit.wsporzedne.x
-                    ).SingleOrDefault(p => p.YCoord == unit.wsporzedne.y);
-
-                if (bazaVertex != null)
-                {
-                    graf.SourceVertex = bazaVertex;
-                }
-
-                return true;
-            }
-
-            jestemKołoBazy = false;
-            return false;
-        }
-        private bool CzyMamSieLeczyc()
+        private bool CheckLiveLevel()
         {
             return unit.hp < POZIOM_LECZENIA;
         }
-        private CommandType LeczSie()
+
+        private CommandType Heal()
         {
             var kierunekDoBazy =
             unit.seesList.SingleOrDefault(
             pole =>
             pole.Building != null && pole.Building.buildingType == BuildingType.altar &&
-            pole.Building.player == wlasciciel);
+            pole.Building.player == Player);
             if (kierunekDoBazy != null)
             {
                 return kierunekDoBazy.Direction == unit.orientation ? CommandType.heal : ZmienKierunekPatrzenia(kierunekDoBazy.Direction);
             }
             return CommandType.rotateRight;
         }
+
         private CommandType ZmienKierunekPatrzenia(DirectionType d)
         {
+
             //[TODO] Obsługa akcji dragging.
             var docelowaOrientacja = (int)unit.orientation;
             var prawo = false;
@@ -455,6 +465,7 @@ namespace Ai
             }
             return prawo ? CommandType.rotateRight : CommandType.rotateLeft;
         }
+
         private DirectionType Obróć(DirectionType d, int a)
         {
             var wynik = (int)d;

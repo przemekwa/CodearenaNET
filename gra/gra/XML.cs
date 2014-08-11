@@ -28,10 +28,10 @@ namespace Ai
                 {
                     id = unit.Attributes["id"].InnerText,
                     
-                    wsporzedne = new Wsporzedne
+                    wsporzedne = new Coordinate
                     {
-                    x= Int32.Parse(unit.Attributes["x"].InnerText),
-                    y = Int32.Parse(unit.Attributes["y"].InnerText),
+                    X= Int32.Parse(unit.Attributes["x"].InnerText),
+                    Y = Int32.Parse(unit.Attributes["y"].InnerText),
                     },
                     status = unit.Attributes["status"].InnerText,
                     action = string.IsNullOrEmpty(unit.Attributes["action"].InnerText) ? (ActionType?)null : (ActionType)Enum.Parse(typeof(ActionType), unit.Attributes["action"].InnerText),

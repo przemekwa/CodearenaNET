@@ -47,13 +47,13 @@ namespace Ai
         public Building Building { get; set; }
         public ObjectType? Object { get; set; }
         public Stan stan { get; set; }
-        public Wsporzedne wsporzedne { get; set; }
+        public Coordinate wsporzedne { get; set; }
     }
 
     public class Unit
     {
         public string id { get; set; }
-        public Wsporzedne wsporzedne { get; set; }
+        public Coordinate wsporzedne { get; set; }
         public int hp { get; set; }
         public string status { get; set; }
         public ActionType? action { get; set; }

@@ -19,25 +19,25 @@ namespace Ai
             {CommandType.SW, "<go direction='SW' />"},
             {CommandType.heal, "<go action='heal' />"}
         };
-        
-        private List<GlownyAlgorytmGry> listaSesji { get; set; }
+
+        private List<sessionUnit> listaSesji { get; set; }
 
         public Ai()
         {
-            this.listaSesji = new List<GlownyAlgorytmGry>();
+            this.listaSesji = new List<sessionUnit>();
         }
 
 
         public string DajMiTenRuch(Game gra)
         {
             if (listaSesji.Count == 0)
-                gra.listaJednostek.ForEach(unit => listaSesji.Add(new GlownyAlgorytmGry(unit)));
+                gra.listaJednostek.ForEach(unit => listaSesji.Add(new sessionUnit(unit)));
 
             foreach (var sessionUnit in listaSesji)
             {
                 //[TODO] A co jak będą dwie jednostki?
 
-                return sessionUnit.WyliczRuch(gra.listaJednostek[0]);
+                return sessionUnit.GetMove(gra.listaJednostek[0]);
             }
 
             return null;

@@ -4,7 +4,7 @@ using System.Security.Authentication.ExtendedProtection.Configuration;
 
 namespace Ai
 {
-     using System;
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
@@ -61,23 +61,23 @@ namespace Ai
                 {
                     return Ai.CommandDictionary[OdłózDiament()];
                 }                                                                   //[TODO] A jak się nie będe mógł uleczyć? Będzie cały czas się leczył. BŁĄD!!!
-                //if (CheckLiveLevel())
-                //{
-                //    if (unit.action != ActionType.dragging)
-                //    {
-                //        return Ai.CommandDictionary[Heal()];
-                //    }
-                //}
+                if (CheckLiveLevel())
+                {
+                    if (unit.action != ActionType.dragging)
+                    {
+                        return Ai.CommandDictionary[Heal()];
+                    }
+                }
             }
 
             //
             // Czy mam ustawiony cel podróży.
             //
 
-            //if (CoordinateList.Count > 0 && unit.action != ActionType.dragging)
-            //{
-            //    return Ai.CommandDictionary[(CommandType) Enum.Parse(typeof (CommandType), GetDirectionFormCoordinateList().ToString())];
-            //}
+            if (CoordinateList.Count > 0 && unit.action != ActionType.dragging)
+            {
+                return Ai.CommandDictionary[(CommandType)Enum.Parse(typeof(CommandType), GetDirectionFormCoordinateList().ToString())];
+            }
 
             //
             // Szukanie diamentu
@@ -106,7 +106,7 @@ namespace Ai
 
         private DirectionType GetDirectionFormCoordinateList()
         {
-            var hexToGo = unit.seesList.SingleOrDefault(p => p.wsporzedne.Equals(CoordinateList.Last()));
+            var hexToGo = HexMap[CurrentHexIndex].listaLisci.SingleOrDefault(p => p.wsporzedne.Equals(CoordinateList.Last()));
 
             if (hexToGo == null) return DirectionHistoryList.Last();
 
@@ -130,10 +130,9 @@ namespace Ai
         private bool SetUpDiament()
         {
             Diament = CheckObjectExisting(ObjectType.diamond);
-
+            
             return Diament != null;
         }
-
         private bool SetUpBaza()
         {
             var poleZBaza =

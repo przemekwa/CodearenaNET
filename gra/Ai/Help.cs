@@ -8,18 +8,18 @@ namespace Ai
 {
     public static class Help
     {
-        public static List<Wsporzedne> ZnajdzSąsiadów(Wsporzedne ws)
+        public static List<Coordinate> ZnajdzSąsiadów(Coordinate ws)
         {
-            var lista = new List<Wsporzedne>();
+            var lista = new List<Coordinate>();
 
-            var tablica1 = new int[3] { ws.x, ws.x + 1, ws.x - 1 };
-            var tablica2 = new int[3] { ws.y, ws.y + 1, ws.y - 1 };
+            var tablica1 = new int[3] { ws.X, ws.X + 1, ws.X - 1 };
+            var tablica2 = new int[3] { ws.Y, ws.Y + 1, ws.Y - 1 };
 
             foreach (var x in tablica1)
             {
                 foreach (var y in tablica2)
                 {
-                    lista.Add(new Wsporzedne { x=x,y=y });
+                    lista.Add(new Coordinate { X = x, Y = y });
                 }
             }
 

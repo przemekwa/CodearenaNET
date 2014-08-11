@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace Ai
 {
-    public struct Wsporzedne
+    public struct Coordinate
     {
-        public int x { get; set; }
-        public int y { get; set; }
+        public int X { get; set; }
+        public int Y { get; set; }
     }
 
     public enum DirectionType { NW, NE, E, SE, SW, W }

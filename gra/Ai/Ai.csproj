@@ -40,6 +40,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Ai.cs" />
+    <Compile Include="DiamondAlgorithm.cs" />
     <Compile Include="Dijkstras_Algorithm.cs" />
     <Compile Include="Game.cs" />
     <Compile Include="Help.cs" />

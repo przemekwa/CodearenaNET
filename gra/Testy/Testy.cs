@@ -29,6 +29,7 @@ namespace Testy
                 new Coordinate{X=2,Y=3}
             };
 
+          //  Assert.AreEqual(true, listaPunktów.Equals(lista)); // Sprawdza też kolejność. 
 
             foreach (var l in listaPunktów)
             {
@@ -36,5 +37,49 @@ namespace Testy
                 Assert.AreNotEqual(test, null);
             }
         }
+
+
+        [TestMethod]
+        public void CheckDiamondalgorithm()
+        {
+            var map = new List<HexField>
+            {
+                new HexField(
+                    new Coordinate{X=1,Y=2},
+                    new List<Sees>
+                    {
+                        new Sees
+                        { 
+                            Background = BackgroundType.black,
+                            Building = null,
+                            Direction = DirectionType.E,
+                            Object = null,
+                            stan = Stan.odwiedzony,
+                            wsporzedne = new Coordinate { X=1,Y=2}
+                        }
+                    })
+            };
+
+            var di = new DiamondAlgorithm(map,
+                new Sees
+                        {
+                            Background = BackgroundType.black,
+                            Building = null,
+                            Direction = DirectionType.E,
+                            Object = ObjectType.diamond,
+                            stan = Stan.nieodwiedzony,
+                            wsporzedne = new Coordinate { X = 1, Y = 2 }
+                        });
+
+
+            var acl = di.CaluculatPath();
+
+            var testcl = new List<Coordinate>();
+
+
+            Assert.AreEqual(true, testcl.Equals(acl)); // Kolejność musi być zachowana.
+            
+        }
+
     }
 }

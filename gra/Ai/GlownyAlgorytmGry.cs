@@ -90,9 +90,11 @@ namespace Ai
                     GetCoordinatesFrom(CurrentHexIndex - 1);
                 }
 
-                return Ai.CommandDictionary[(CommandType)Enum.Parse(typeof(CommandType), GetDirectionFormCoordinateList().ToString())];
+                // Ai.CommandDictionary[(CommandType)Enum.Parse(typeof(CommandType), GetDirectionFormCoordinateList().ToString())];
 
-              //  return Ai.CommandDictionary[ZnalazłemDiamend(NamiaryNaDiament)];
+                this.CoordinateList =  new DiamondAlgorithm(HexMap, this.Diament).CaluculatPath();
+
+                return Ai.CommandDictionary[(CommandType)Enum.Parse(typeof(CommandType), GetDirectionFormCoordinateList().ToString())];
             }
 
             //
@@ -129,10 +131,11 @@ namespace Ai
 
         private bool SetUpDiament()
         {
-            Diament = CheckObjectExisting(ObjectType.diamond);
+            this.Diament = CheckObjectExisting(ObjectType.diamond);
             
             return Diament != null;
         }
+
         private bool SetUpBaza()
         {
             var poleZBaza =
@@ -342,31 +345,6 @@ namespace Ai
             if (pole.Object != null && pole.Object == ObjectType.diamond) return false;
             if (pole.Object != null && pole.Object == ObjectType.stone) return false;
             return pole.Building == null || pole.Building.buildingType != BuildingType.altar;
-        }
-
-        private CommandType ZnalazłemDiamend(DirectionType dt)
-        {
-            //[TODO] ustaw odpowiednio diament
-
-            if (unit.action != ActionType.dragging)
-            {
-                return unit.orientation == dt ? CommandType.drag : ZmienKierunekPatrzenia(dt);
-            }
-
-            //[ToDo] Numery wieszchiołów.
-
-            var kierunek = ReadDirectionFromCoordinateList();
-            
-            if (CzyDianemStoiWOdpowiedniejPozycji(kierunek))
-                {
-                    if (CzyDiamentMozeSiePoruszyc(kierunek))
-                    {
-                        return (CommandType)Enum.Parse(typeof(CommandType), GetDirectionFormCoordinateList().ToString());
-                    }
-                    return UstawDiamentWodpowiedniejPozycji(DirectionHistoryList.Last());
-                }
-                return UstawDiamentTakAbyByloMoznaGoporuszyc(kierunek);
-            
         }
 
         private bool CzyDiamentMozeSiePoruszyc(DirectionType d)
